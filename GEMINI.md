@@ -329,6 +329,7 @@ Design for:
 
 Plans should be human readable high level docs containing all the nitty gritties about how the work will be done but not the code, no pointers. Be as expressive as u can while planning but with words not with code .
 
+
 ## Rule of Package Manager
 
 Our package  wil be mantained by the bun intrinsically
