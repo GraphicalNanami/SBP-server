@@ -624,19 +624,7 @@ ORG_TAGLINE_MAX_LENGTH=100      # Maximum tagline length
 
 ---
 
-## 11. Future Enhancements (Out of Scope)
-
-- Email invitations with accept/reject flow
-- Organization transfer (change creator)
-- Organization name change (requires admin approval)
-- Organization deletion (cascade delete hackathons)
-- Organization verification badges
-- Organization analytics dashboard
-- Audit logs for org changes
-
----
-
-## 12. Validation Summary
+## 11. Validation Summary
 
 ### Organization Creation
 - ✓ Name: 3-100 chars, unique, alphanumeric + spaces/hyphens/underscores
@@ -661,7 +649,7 @@ ORG_TAGLINE_MAX_LENGTH=100      # Maximum tagline length
 
 ---
 
-## 13. Error Handling
+## 12. Error Handling
 
 | Status | Scenario                                          |
 |--------|---------------------------------------------------|
@@ -683,7 +671,7 @@ ORG_TAGLINE_MAX_LENGTH=100      # Maximum tagline length
 
 ---
 
-## 14. Testing Checklist
+## 13. Testing Checklist
 
 ### Unit Tests
 - [ ] OrganizationsService.create() → creates org + admin membership
