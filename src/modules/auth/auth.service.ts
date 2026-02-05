@@ -2,11 +2,14 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'crypto';
+import { hash, compare } from 'bcrypt';
 import { Types } from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { ProfilesService } from '../profiles/profiles.service';
 import { RedisService } from '../../database/redis/redis.service';
 import { User } from '../users/schemas/user.schema';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,52 +21,66 @@ export class AuthService {
     private redisService: RedisService,
   ) {}
 
-  async validateUser(
-    provider: string,
-    providerId: string,
-    email: string,
-    name: string,
-    avatar: string,
-  ): Promise<User> {
-    let user = await this.usersService.findByProviderId(provider, providerId);
+  async register(registerDto: RegisterDto) {
+    const { email, password, name } = registerDto;
 
-    if (!user) {
-      // Check if user exists by email (if email is provided)
-      if (email) {
-        user = await this.usersService.findByEmail(email);
-      }
+    // Hash password
+    const bcryptRounds = this.configService.get<number>('BCRYPT_ROUNDS') || 10;
+    const hashedPassword = await hash(password, bcryptRounds);
 
-      if (!user) {
-        // Create new user
-        user = await this.usersService.create({
-          provider,
-          providerId,
-          email,
-          name,
-          avatar,
-        });
+    // Create user (UsersService handles duplicate check)
+    const user = await this.usersService.create(email, hashedPassword, name);
 
-        // Create profile for new user
-        await this.profilesService.create({
-          userId: new Types.ObjectId(user._id),
-        });
-      } else {
-        // Update existing user with provider info if it matches email
-        user = await this.usersService.update(user._id.toString(), {
-          provider,
-          providerId,
-        });
-      }
-    }
+    // Create profile for new user
+    await this.profilesService.create({
+      userId: new Types.ObjectId(user._id),
+    });
 
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
 
-    return user;
+    return {
+      ...tokens,
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    };
   }
 
-  async login(user: User) {
+  async login(loginDto: LoginDto) {
+    const { email, password } = loginDto;
+
+    // Find user with password
+    const user = await this.usersService.findByEmailWithPassword(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password - type assertion needed because password has select: false
+    const userWithPassword = user as User & { password: string };
+    const isPasswordValid = await compare(password, userWithPassword.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
+
+    return {
+      ...tokens,
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    };
+  }
+
+  private async generateTokens(user: User) {
     const payload = {
       sub: user._id,
       email: user.email,
@@ -74,8 +91,8 @@ export class AuthService {
     const refreshToken = await this.generateRefreshToken(user._id.toString());
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
+      accessToken,
+      refreshToken,
     };
   }
 
@@ -102,10 +119,21 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    // Optional: Rotate refresh token
+    // Rotate refresh token
     await this.redisService.del(`refresh:${tokenHash}`);
 
-    return this.login(user);
+    // Generate new tokens
+    const tokens = await this.generateTokens(user);
+
+    return {
+      ...tokens,
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    };
   }
 
   async logout(refreshToken: string) {
