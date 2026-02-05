@@ -13,16 +13,19 @@ Auth, Users, and Profiles are built together. They are tightly coupled at the id
 | Field      | Type     | Constraints                                     |
 |------------|----------|-------------------------------------------------|
 | _id        | ObjectId | Auto-generated                                  |
-| email      | string   | Unique, indexed. Sourced from OAuth provider.   |
-| name       | string   | Display name from provider                      |
-| avatar     | string   | URL from provider                               |
+| email      | string   | Unique, indexed. Required.                      |
+| password   | string   | Bcrypt hash (never returned in API responses)   |
+| name       | string   | Display name                                    |
+| avatar     | string   | Optional. URL or gravatar.                      |
 | role       | enum     | `USER \| ORGANIZER \| ADMIN` — default `USER`   |
-| provider   | enum     | `github \| google`                              |
-| providerId | string   | Provider's user ID (e.g. GitHub numeric ID)     |
 | createdAt  | Date     | Auto via Mongoose timestamps                    |
 | updatedAt  | Date     | Auto via Mongoose timestamps                    |
 
-**Indexes:** `email` (unique), `{ provider, providerId }` (unique compound)
+**Indexes:** `email` (unique)
+
+**Security:**
+- Password field must be excluded from all query results using `.select('-password')`
+- Hash passwords using `bcrypt` with salt rounds = 10
 
 ---
 
@@ -42,39 +45,70 @@ Auth, Users, and Profiles are built together. They are tightly coupled at the id
 
 ---
 
-## 2. OAuth Flow
+## 2. Authentication Flow
+
+### Registration Flow
 
 ```
-Client              Server                       GitHub / Google
-  |                   |                               |
-  |─ GET /auth/gh ──> |                               |
-  |                   |── redirect (302) ───────────> |
-  |                   |                               |
-  |                   | <── callback?code=… ──────── |
-  |                   |                               |
-  |                   |── exchange code → token ───> |
-  |                   | <── provider profile ─────── |
-  |                   |                               |
-  |                   | [find or create User]
-  |                   | [find or create Profile]
-  |                   | [issue access JWT + refresh token]
-  |                   | [store hashed refresh token in Redis]
-  |                   |                               |
-  | <─ redirect w/ tokens (query params or cookies) ─|
+Client                          Server
+  |                               |
+  |─ POST /auth/register ───────> |
+  |   { email, password, name }   |
+  |                               | [validate input]
+  |                               | [check if email exists]
+  |                               | [hash password with bcrypt]
+  |                               | [create User]
+  |                               | [create Profile]
+  |                               | [issue access JWT + refresh token]
+  |                               | [store hashed refresh token in Redis]
+  |                               |
+  | <─ { accessToken, refreshToken, user } ─|
 ```
 
-### Server-side steps (inside the callback handler)
+**Steps:**
+1. Validate input (email format, password strength ≥8 chars)
+2. Check if email already exists → return 409 Conflict if yes
+3. Hash password with `bcrypt.hash(password, 10)`
+4. Create User document
+5. Create Profile document linked to userId
+6. Issue tokens and store refresh token in Redis
+7. Return tokens + sanitized user object (no password)
 
-1. Passport strategy receives the provider profile (id, email, name, avatar).
-2. `AuthService.validateUser(provider, providerId, email, name, avatar)`:
-   - Query `User` by `{ provider, providerId }`.
-   - If not found → create `User`, then create `Profile`.
-   - If found → return existing `User`.
-3. Issue tokens:
-   - **Access token:** signed JWT, 15-min TTL. Payload: `{ userId, email, role }`.
-   - **Refresh token:** `crypto.randomBytes(32)` → hex string. Store SHA-256 hash in Redis with 7-day TTL.
-   - **Redis key format:** `refresh:${tokenHash}` → value: `userId`
-4. Return both tokens to client.
+---
+
+### Login Flow
+
+```
+Client                          Server
+  |                               |
+  |─ POST /auth/login ──────────> |
+  |   { email, password }         |
+  |                               | [find user by email]
+  |                               | [compare password with bcrypt]
+  |                               | [issue access JWT + refresh token]
+  |                               | [store hashed refresh token in Redis]
+  |                               |
+  | <─ { accessToken, refreshToken, user } ─|
+```
+
+**Steps:**
+1. Find user by email
+2. If not found → return 401 Unauthorized
+3. Compare password: `bcrypt.compare(password, user.password)`
+4. If mismatch → return 401 Unauthorized
+5. Issue tokens and store refresh token in Redis
+6. Return tokens + sanitized user object
+
+---
+
+### Token Issuance (shared by register & login)
+
+1. **Access token:** signed JWT, 15-min TTL. Payload: `{ userId, email, role }`.
+2. **Refresh token:** `crypto.randomBytes(32).toString('hex')` → 64-char hex string.
+3. Store in Redis:
+   - Key: `refresh:${sha256(refreshToken)}`
+   - Value: `userId`
+   - TTL: 7 days (auto-expire)
 
 ---
 
@@ -85,23 +119,56 @@ Client              Server                       GitHub / Google
 | Access  | JWT     | 15 min| Client memory    | Stateless auth header on API calls  |
 | Refresh | Opaque  | 7 d   | Redis (hashed)   | Obtain fresh access tokens          |
 
-- OAuth provider access tokens are **never persisted**. Only the identity fields (id, email, name, avatar) are extracted and discarded.
-- Refresh tokens stored as SHA-256 hashes in Redis with automatic TTL expiration — raw token is never stored.
-- **Redis key pattern:** `refresh:${tokenHash}` → `${userId}`
+**Security:**
+- Passwords are hashed with `bcrypt` before storage — never stored in plaintext
+- Refresh tokens stored as SHA-256 hashes in Redis with automatic TTL expiration — raw token is never stored
+- **Redis key pattern:** `refresh:${sha256(refreshToken)}` → value: `${userId}`
+- Access tokens are signed with `HS256` algorithm using `JWT_SECRET`
 
 ---
 
 ## 4. Endpoints
 
-| Method | Path                   | Auth     | Description                                  |
-|--------|------------------------|----------|----------------------------------------------|
-| GET    | /auth/github           | —        | Initiate GitHub OAuth redirect               |
-| GET    | /auth/github/callback  | —        | GitHub callback (handled by Passport)        |
-| GET    | /auth/google           | —        | Initiate Google OAuth redirect               |
-| GET    | /auth/google/callback  | —        | Google callback (handled by Passport)        |
-| POST   | /auth/refresh          | —        | Body: `{ refreshToken }` → new access token  |
-| POST   | /auth/logout           | Bearer   | Invalidate the caller's refresh token        |
-| GET    | /profile/me            | Bearer   | Return authenticated user + profile          |
+| Method | Path           | Auth     | Description                                           |
+|--------|----------------|----------|-------------------------------------------------------|
+| POST   | /auth/register | —        | Register new user. Body: `{ email, password, name }`  |
+| POST   | /auth/login    | —        | Login. Body: `{ email, password }`                    |
+| POST   | /auth/refresh  | —        | Refresh access token. Body: `{ refreshToken }`        |
+| POST   | /auth/logout   | Bearer   | Invalidate refresh token. Body: `{ refreshToken }`    |
+| GET    | /profile/me    | Bearer   | Return authenticated user + profile                   |
+
+**Request/Response Examples:**
+
+### POST /auth/register
+```json
+// Request
+{ "email": "user@example.com", "password": "securepass123", "name": "John Doe" }
+
+// Response (201)
+{
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "a1b2c3...",
+  "user": {
+    "_id": "...",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "USER"
+  }
+}
+```
+
+### POST /auth/login
+```json
+// Request
+{ "email": "user@example.com", "password": "securepass123" }
+
+// Response (200)
+{
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "a1b2c3...",
+  "user": { "_id": "...", "email": "...", "name": "...", "role": "USER" }
+}
+```
 
 ---
 
@@ -109,19 +176,36 @@ Client              Server                       GitHub / Google
 
 ```
 AuthModule
-  ├── imports:   UsersModule, ProfilesModule, JwtModule, PassportModule, RedisModule
+  ├── imports:   UsersModule, ProfilesModule, JwtModule, RedisModule
   ├── exports:   — (leaf module, consumed by no other module)
-  ├── strategies: GithubStrategy, GoogleStrategy
-  └── uses Redis for: refresh token storage (hashed, with TTL)
+  ├── guards:    JwtAuthGuard (validates access token on protected routes)
+  └── uses:      Redis for refresh token storage (hashed, with TTL)
+                 bcrypt for password hashing
 
 UsersModule
   ├── exports:   UsersService
-  └── schemas:   User
+  └── schemas:   User (with password field, always excluded in responses)
 
 ProfilesModule
   ├── imports:   UsersModule (for userId validation, optional)
   ├── exports:   ProfilesService
   └── schemas:   Profile
+```
+
+**Auth module structure:**
+```
+modules/auth/
+├── auth.controller.ts
+├── auth.service.ts
+├── auth.module.ts
+├── dto/
+│   ├── register.dto.ts
+│   ├── login.dto.ts
+│   └── refresh.dto.ts
+├── guards/
+│   └── jwt-auth.guard.ts
+└── tests/
+    └── auth.service.spec.ts
 ```
 
 ---
@@ -143,15 +227,8 @@ JWT_SECRET=<random 64-char hex>
 JWT_ACCESS_TTL=900        # 15 min (seconds)
 JWT_REFRESH_TTL=604800    # 7 days (seconds)
 
-# GitHub OAuth
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
-GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
-
-# Google OAuth
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+# Password Hashing
+BCRYPT_ROUNDS=10         # Salt rounds for bcrypt (10 is standard)
 ```
 
 ---
@@ -162,10 +239,20 @@ GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
 2. Config module — `@nestjs/config` + env validation with class-validator
 3. MongoDB connection — `MongooseModule.forRootAsync()`
 4. Redis connection — `RedisModule` using `ioredis` or `@nestjs/cache-manager` with redis store
-5. Users module — schema, service (`findByProviderOrCreate`)
-6. Profiles module — schema, service (`findOrCreateByUserId`)
-7. Auth strategies — `GithubStrategy` (first), then `GoogleStrategy`
-8. Auth service — `validateUser`, `generateAccessToken`, `generateRefreshToken`, `storeRefreshToken` (Redis)
-9. Auth controller — OAuth routes, refresh (verify from Redis), logout (delete from Redis)
-10. `/profile/me` endpoint on `ProfilesController` — guarded by `JwtAuthGuard`
-11. Unit tests for each service
+5. Users module:
+   - User schema (with password field, bcrypt hash)
+   - UsersService (`create`, `findByEmail`, always exclude password in responses)
+6. Profiles module:
+   - Profile schema
+   - ProfilesService (`create`, `findByUserId`)
+7. Auth module — DTOs (RegisterDto, LoginDto, RefreshDto with class-validator)
+8. Auth service:
+   - `register(email, password, name)` → hash password, create user + profile, issue tokens
+   - `login(email, password)` → verify password, issue tokens
+   - `generateTokens(userId)` → create access JWT + refresh token, store in Redis
+   - `refreshAccessToken(refreshToken)` → verify from Redis, issue new access token
+   - `logout(refreshToken)` → delete from Redis
+9. Auth controller — `/register`, `/login`, `/refresh`, `/logout` endpoints
+10. JwtAuthGuard — Passport JWT strategy to protect routes
+11. `/profile/me` endpoint on `ProfilesController` — guarded by `@UseGuards(JwtAuthGuard)`
+12. Unit tests for AuthService, UsersService, ProfilesService
