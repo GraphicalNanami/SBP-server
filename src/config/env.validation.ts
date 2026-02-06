@@ -29,23 +29,6 @@ class EnvironmentVariables {
   @IsNumber()
   JWT_REFRESH_TTL: number;
 
-  @IsString()
-  GITHUB_CLIENT_ID: string;
-
-  @IsString()
-  GITHUB_CLIENT_SECRET: string;
-
-  @IsString()
-  GITHUB_CALLBACK_URL: string;
-
-  @IsString()
-  GOOGLE_CLIENT_ID: string;
-
-  @IsString()
-  GOOGLE_CLIENT_SECRET: string;
-
-  @IsString()
-  GOOGLE_CALLBACK_URL: string;
 
   @IsString()
   ORG_TERMS_VERSION: string;
