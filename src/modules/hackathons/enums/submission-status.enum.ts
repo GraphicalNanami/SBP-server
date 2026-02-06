@@ -1,0 +1,7 @@
+export enum SubmissionStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  UNDER_REVIEW = 'UNDER_REVIEW',
+  WINNER = 'WINNER',
+  DISQUALIFIED = 'DISQUALIFIED',
+}

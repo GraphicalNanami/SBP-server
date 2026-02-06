@@ -42,6 +42,7 @@ import { WalletsModule } from '@/src/modules/wallets/wallets.module';
     ProfilesModule,
     AuthModule,
     OrganizationsModule,
+    HackathonsModule,
     ExperienceModule,
     WalletsModule,
   ],
