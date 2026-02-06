@@ -7,9 +7,9 @@
 
 ## Public Interfaces
 - `ExperienceService`: CRUD operations for experience data
-  - `findByUserId(userId)` → Experience | null
-  - `upsert(userId, data)` → Experience
-  - `update(userId, data)` → Experience (partial update)
+  - `findByUserId(userId)` → Experience | null (Accepts UUID or ObjectId)
+  - `upsert(userId, data)` → Experience (Resolves UUID to ObjectId)
+  - `update(userId, data)` → Experience (partial update, resolves UUID)
 - `ExperienceController`: Endpoints to manage experience data
   - `GET /experience/me` — Get current user's experience
   - `PUT /experience` — Create or replace experience

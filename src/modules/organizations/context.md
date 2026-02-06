@@ -8,18 +8,18 @@
 
 ## Public Interfaces
 - `OrganizationsService`:
-    - `create(userId, dto)`: Create a new organization and assign the creator as ADMIN.
+    - `create(userId, dto)`: Create a new organization and assign the creator as ADMIN. (Accepts UUID userId)
     - `findBySlug(slug)`: Find an organization by its slug.
-    - `findById(id)`: Find an organization by its ID.
-    - `findUserOrganizations(userId)`: Get all organizations where the user is an active member.
-    - `updateProfile(orgId, dto)`: Update basic organization profile info.
-    - `updateSocialLinks(orgId, dto)`: Update organization social media links.
+    - `findById(id)`: Find an organization by its ID (Supports UUID or ObjectId).
+    - `findUserOrganizations(userId)`: Get all organizations where the user is an active member. (Accepts UUID userId)
+    - `updateProfile(orgId, dto)`: Update basic organization profile info. (Accepts UUID orgId)
+    - `updateSocialLinks(orgId, dto)`: Update organization social media links. (Accepts UUID orgId)
 - `MembersService`:
-    - `findByOrganizationId(orgId, filters)`: List all members of an organization.
-    - `inviteMember(orgId, invitedBy, email, role)`: Invite a user to an organization.
-    - `updateMemberRole(orgId, memberId, newRole, updatedBy)`: Change a member's role.
-    - `removeMember(orgId, memberId, removedBy)`: Soft delete a member (set status to REMOVED).
-    - `getMember(orgId, userId)`: Get membership details for a user in an organization.
+    - `findByOrganizationId(orgId, filters)`: List all members of an organization. (Accepts UUID orgId)
+    - `inviteMember(orgId, invitedBy, email, role)`: Invite a user to an organization. (Accepts UUID orgId, invitedBy)
+    - `updateMemberRole(orgId, memberId, newRole, updatedBy)`: Change a member's role. (Accepts UUID)
+    - `removeMember(orgId, memberId, removedBy)`: Soft delete a member (set status to REMOVED). (Accepts UUID)
+    - `getMember(orgId, userId)`: Get membership details for a user in an organization. (Accepts UUID)
 
 ## Invariants
 - Organization name and slug must be globally unique.

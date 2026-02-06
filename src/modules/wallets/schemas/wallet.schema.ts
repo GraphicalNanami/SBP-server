@@ -1,8 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 @Schema({ timestamps: { createdAt: 'addedAt', updatedAt: 'updatedAt' } })
 export class Wallet extends Document {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: Types.ObjectId,
     ref: 'User',

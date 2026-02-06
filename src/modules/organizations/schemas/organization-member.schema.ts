@@ -4,9 +4,18 @@ import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
 import { MemberStatus } from '@/src/modules/organizations/enums/member-status.enum';
 import { Organization } from '@/src/modules/organizations/schemas/organization.schema';
 import { User } from '@/src/modules/users/schemas/user.schema';
+import { v4 as uuidv4 } from 'uuid';
 
 @Schema({ timestamps: true })
 export class OrganizationMember extends Document {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Organization',

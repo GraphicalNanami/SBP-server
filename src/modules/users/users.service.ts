@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '@/src/modules/users/schemas/user.schema';
 import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
+import { UuidUtil } from '@/src/common/utils/uuid.util';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,16 @@ export class UsersService {
     return this.userModel.findOne({ email }).select('+password').exec();
   }
 
+  async findByUuid(uuid: string): Promise<User | null> {
+    return this.userModel.findOne({ uuid }).exec();
+  }
+
   async findById(id: string): Promise<User | null> {
+    // Try UUID first (new approach)
+    if (UuidUtil.validate(id)) {
+      return this.findByUuid(id);
+    }
+    // Fallback to ObjectId (backwards compatibility)
     return this.userModel.findById(id).exec();
   }
 
@@ -42,6 +52,7 @@ export class UsersService {
 
     return newUser.save();
   }
+
 
   @LogInteraction()
   async update(id: string, updateData: Partial<User>): Promise<User | null> {

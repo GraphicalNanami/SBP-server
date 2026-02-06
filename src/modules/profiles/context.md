@@ -10,7 +10,8 @@
 ## Public Interfaces
 - `ProfilesService`: CRUD operations for profiles
   - `create(userId)` → Profile
-  - `findByUserId(userId)` → Profile | null
+  - `findByUserId(userId)` → Profile | null (Accepts UUID or ObjectId)
+  - `findByUuid(uuid)` → Profile | null
   - `update(userId, data)` → Profile
   - `getCompleteProfile(userId)` → Aggregated User, Profile, Experience, and Wallets
 - `FileUploadService`: Image processing and storage

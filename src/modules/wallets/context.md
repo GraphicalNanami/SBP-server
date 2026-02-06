@@ -8,11 +8,13 @@
 
 ## Public Interfaces
 - `WalletsService`: CRUD and logic for wallets
-  - `findByUserId(userId)` → Wallet[]
+  - `findByUserId(userId)` → Wallet[] (Accepts UUID or ObjectId)
   - `addWallet(userId, address, nickname)` → { wallet, challenge }
-  - `verifyWallet(userId, walletId, signature, challenge)` → Wallet
+  - `verifyWallet(userId, walletId, signature, challenge)` → Wallet (Accepts UUID/ObjectId for walletId and userId)
   - `setPrimary(userId, walletId)` → Wallet
   - `removeWallet(userId, walletId)` → void
+  - `findById(walletId)` → Wallet | null (Accepts UUID or ObjectId)
+  - `findByUuid(uuid)` → Wallet | null
 - `StellarVerificationService`: Low-level Stellar signature verification
 - `WalletsController`: Endpoints for wallet management
   - `GET /wallets` — List user's wallets

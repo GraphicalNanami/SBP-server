@@ -37,7 +37,7 @@ export class AuthService {
 
     // Create profile for new user
     await this.profilesService.create({
-      userId: new Types.ObjectId(user._id),
+      userId: user._id as Types.ObjectId,
     });
 
     // Generate tokens
@@ -46,7 +46,7 @@ export class AuthService {
     return {
       ...tokens,
       user: {
-        _id: user._id,
+        uuid: user.uuid,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -77,7 +77,7 @@ export class AuthService {
     return {
       ...tokens,
       user: {
-        _id: user._id,
+        uuid: user.uuid,
         email: user.email,
         name: user.name,
         role: user.role,
@@ -87,13 +87,13 @@ export class AuthService {
 
   private async generateTokens(user: User) {
     const payload = {
-      sub: user._id,
+      sub: user.uuid,
       email: user.email,
       role: user.role,
     };
 
     const accessToken = this.jwtService.sign(payload);
-    const refreshToken = await this.generateRefreshToken(user._id.toString());
+    const refreshToken = await this.generateRefreshToken(user.uuid);
 
     return {
       accessToken,
@@ -134,7 +134,7 @@ export class AuthService {
     return {
       ...tokens,
       user: {
-        _id: user._id,
+        uuid: user.uuid,
         email: user.email,
         name: user.name,
         role: user.role,

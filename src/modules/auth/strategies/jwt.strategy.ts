@@ -3,6 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '@/src/modules/users/users.service';
+import { UuidUtil } from '@/src/common/utils/uuid.util';
+import { User } from '@/src/modules/users/schemas/user.schema';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,7 +20,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const user = await this.usersService.findById(payload.sub);
+    let user: User | null;
+
+    // Try UUID first (new tokens)
+    if (UuidUtil.validate(payload.sub)) {
+      user = await this.usersService.findByUuid(payload.sub);
+    } else {
+      // Fallback for old tokens
+      user = await this.usersService.findById(payload.sub);
+    }
+
     if (!user) {
       throw new UnauthorizedException('User not found');
     }

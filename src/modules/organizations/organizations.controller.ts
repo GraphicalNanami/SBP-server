@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
 import { OrganizationRoleGuard } from '@/src/modules/organizations/guards/organization-role.guard';
 import { RequireRole } from '@/src/modules/organizations/decorators/require-role.decorator';
 import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
+import { UuidParamDto } from '@/src/common/dto/uuid-param.dto';
 
 @Controller('organizations')
 @UseGuards(JwtAuthGuard)
@@ -24,39 +25,37 @@ export class OrganizationsController {
 
   @Post()
   async create(@Req() req: any, @Body() createDto: CreateOrganizationDto) {
-    const userId = req.user.id || req.user._id;
-    return this.organizationsService.create(userId, createDto);
+    return this.organizationsService.create(req.user.uuid, createDto);
   }
 
   @Get('me')
   async getMyOrganizations(@Req() req: any) {
-    const userId = req.user.id || req.user._id;
-    return this.organizationsService.findUserOrganizations(userId);
+    return this.organizationsService.findUserOrganizations(req.user.uuid);
   }
 
   @Get(':id')
   @UseGuards(OrganizationRoleGuard)
-  async getById(@Param('id') id: string) {
-    return this.organizationsService.findById(id);
+  async getById(@Param() params: UuidParamDto) {
+    return this.organizationsService.findById(params.id);
   }
 
   @Patch(':id/profile')
   @UseGuards(OrganizationRoleGuard)
   @RequireRole(MemberRole.ADMIN)
   async updateProfile(
-    @Param('id') id: string,
+    @Param() params: UuidParamDto,
     @Body() updateDto: UpdateOrganizationProfileDto,
   ) {
-    return this.organizationsService.updateProfile(id, updateDto);
+    return this.organizationsService.updateProfile(params.id, updateDto);
   }
 
   @Patch(':id/social-links')
   @UseGuards(OrganizationRoleGuard)
   @RequireRole(MemberRole.ADMIN)
   async updateSocialLinks(
-    @Param('id') id: string,
+    @Param() params: UuidParamDto,
     @Body() updateDto: UpdateSocialLinksDto,
   ) {
-    return this.organizationsService.updateSocialLinks(id, updateDto);
+    return this.organizationsService.updateSocialLinks(params.id, updateDto);
   }
 }

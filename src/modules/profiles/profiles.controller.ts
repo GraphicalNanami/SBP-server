@@ -21,7 +21,7 @@ export class ProfilesController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: any) {
-    return this.profilesService.getCompleteProfile(req.user._id);
+    return this.profilesService.getCompleteProfile(req.user.uuid);
   }
 
   @Patch('personal-info')
@@ -31,7 +31,7 @@ export class ProfilesController {
     @Body() updateDto: UpdatePersonalInfoDto,
   ) {
     const profile = await this.profilesService.update(
-      req.user._id,
+      req.user.uuid,
       updateDto,
     );
     return {
@@ -45,7 +45,7 @@ export class ProfilesController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadPicture(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
     const profilePictureUrl = await this.profilesService.uploadProfilePicture(
-      req.user._id,
+      req.user.uuid,
       file,
     );
     return {

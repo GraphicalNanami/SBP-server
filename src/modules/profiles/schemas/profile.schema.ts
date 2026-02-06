@@ -1,9 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Gender } from '@/src/common/enums/gender.enum';
+import { v4 as uuidv4 } from 'uuid';
 
 @Schema({ timestamps: true })
 export class Profile extends Document {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: Types.ObjectId,
     ref: 'User',

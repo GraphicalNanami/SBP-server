@@ -17,6 +17,8 @@ import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
 import { OrganizationRoleGuard } from '@/src/modules/organizations/guards/organization-role.guard';
 import { RequireRole } from '@/src/modules/organizations/decorators/require-role.decorator';
 import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
+import { UuidParamDto } from '@/src/common/dto/uuid-param.dto';
+import { MemberParamsDto } from '@/src/modules/organizations/dto/member-params.dto';
 
 @Controller('organizations/:id/members')
 @UseGuards(JwtAuthGuard, OrganizationRoleGuard)
@@ -24,21 +26,20 @@ export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
   @Get()
-  async listMembers(@Param('id') orgId: string, @Query() query: any) {
-    return this.membersService.findByOrganizationId(orgId, query);
+  async listMembers(@Param() params: UuidParamDto, @Query() query: any) {
+    return this.membersService.findByOrganizationId(params.id, query);
   }
 
   @Post('invite')
   @RequireRole(MemberRole.ADMIN)
   async inviteMember(
-    @Param('id') orgId: string,
+    @Param() params: UuidParamDto,
     @Req() req: any,
     @Body() inviteDto: InviteMemberDto,
   ) {
-    const userId = req.user.id || req.user._id;
     return this.membersService.inviteMember(
-      orgId,
-      userId,
+      params.id,
+      req.user.uuid,
       inviteDto.email,
       inviteDto.role,
     );
@@ -47,28 +48,24 @@ export class MembersController {
   @Patch(':memberId/role')
   @RequireRole(MemberRole.ADMIN)
   async updateRole(
-    @Param('id') orgId: string,
-    @Param('memberId') memberId: string,
+    @Param() params: MemberParamsDto,
     @Req() req: any,
     @Body() updateDto: UpdateMemberRoleDto,
   ) {
-    const userId = req.user.id || req.user._id;
     return this.membersService.updateMemberRole(
-      orgId,
-      memberId,
+      params.id,
+      params.memberId,
       updateDto.role,
-      userId,
+      req.user.uuid,
     );
   }
 
   @Delete(':memberId')
   @RequireRole(MemberRole.ADMIN)
   async removeMember(
-    @Param('id') orgId: string,
-    @Param('memberId') memberId: string,
+    @Param() params: MemberParamsDto,
     @Req() req: any,
   ) {
-    const userId = req.user.id || req.user._id;
-    return this.membersService.removeMember(orgId, memberId, userId);
+    return this.membersService.removeMember(params.id, params.memberId, req.user.uuid);
   }
 }

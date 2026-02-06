@@ -3,16 +3,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { validate } from '@/src/src/config/env.validation';
-import { AppController } from '@/src/src/app.controller';
-import { AppService } from '@/src/src/app.service';
-import { AuthModule } from '@/src/src/modules/auth/auth.module';
-import { UsersModule } from '@/src/src/modules/users/users.module';
-import { ProfilesModule } from '@/src/src/modules/profiles/profiles.module';
-import { RedisModule } from '@/src/src/database/redis/redis.module';
-import { OrganizationsModule } from '@/src/src/modules/organizations/organizations.module';
-import { ExperienceModule } from '@/src/src/modules/experience/experience.module';
-import { WalletsModule } from '@/src/src/modules/wallets/wallets.module';
+import { validate } from '@/src/config/env.validation';
+import { AppController } from '@/src/app.controller';
+import { AppService } from '@/src/app.service';
+import { AuthModule } from '@/src/modules/auth/auth.module';
+import { UsersModule } from '@/src/modules/users/users.module';
+import { ProfilesModule } from '@/src/modules/profiles/profiles.module';
+import { RedisModule } from '@/src/database/redis/redis.module';
+import { OrganizationsModule } from '@/src/modules/organizations/organizations.module';
+import { ExperienceModule } from '@/src/modules/experience/experience.module';
+import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 
 @Module({
   imports: [

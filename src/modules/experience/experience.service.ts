@@ -4,6 +4,8 @@ import { Model, Types } from 'mongoose';
 import { Experience } from '@/src/modules/experience/schemas/experience.schema';
 import { CreateExperienceDto, UpdateExperienceDto } from '@/src/modules/experience/dto/experience.dto';
 import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
+import { UsersService } from '@/src/modules/users/users.service';
+import { UuidUtil } from '@/src/common/utils/uuid.util';
 
 @Injectable()
 export class ExperienceService {
@@ -11,19 +13,43 @@ export class ExperienceService {
 
   constructor(
     @InjectModel(Experience.name) private experienceModel: Model<Experience>,
+    private usersService: UsersService,
   ) {}
 
   async findByUserId(userId: string | Types.ObjectId): Promise<Experience | null> {
-    const id = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+    let id: Types.ObjectId;
+
+    if (typeof userId === 'string') {
+      if (UuidUtil.validate(userId)) {
+        const user = await this.usersService.findByUuid(userId);
+        if (!user) return null;
+        id = user._id as Types.ObjectId;
+      } else if (Types.ObjectId.isValid(userId)) {
+        id = new Types.ObjectId(userId);
+      } else {
+         return null; 
+      }
+    } else {
+      id = userId;
+    }
     return this.experienceModel.findOne({ userId: id }).exec();
   }
 
   @LogInteraction()
   async upsert(userId: string, data: CreateExperienceDto): Promise<Experience> {
+    let id: Types.ObjectId;
+    if (UuidUtil.validate(userId)) {
+        const user = await this.usersService.findByUuid(userId);
+        if (!user) throw new Error('User not found'); // Should be handled by guard/controller usually
+        id = user._id as Types.ObjectId;
+    } else {
+        id = new Types.ObjectId(userId);
+    }
+
     return this.experienceModel
       .findOneAndUpdate(
-        { userId: new Types.ObjectId(userId) },
-        { ...data, userId: new Types.ObjectId(userId) },
+        { userId: id },
+        { ...data, userId: id },
         { upsert: true, new: true },
       )
       .exec();
@@ -31,6 +57,15 @@ export class ExperienceService {
 
   @LogInteraction()
   async update(userId: string, data: UpdateExperienceDto): Promise<Experience> {
+    let id: Types.ObjectId;
+    if (UuidUtil.validate(userId)) {
+        const user = await this.usersService.findByUuid(userId);
+        if (!user) throw new Error('User not found');
+        id = user._id as Types.ObjectId;
+    } else {
+        id = new Types.ObjectId(userId);
+    }
+
     const updateQuery: any = {};
     const addToSet: any = {};
     const pull: any = {};
@@ -52,11 +87,12 @@ export class ExperienceService {
     if (Object.keys(pull).length > 0) update.$pull = pull;
 
     return this.experienceModel
-      .findOneAndUpdate({ userId: new Types.ObjectId(userId) }, update, {
+      .findOneAndUpdate({ userId: id }, update, {
         upsert: true,
         new: true,
       })
       .exec();
   }
 }
+
 
