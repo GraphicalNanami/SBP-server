@@ -50,10 +50,11 @@ export class HackathonRoleGuard implements CanActivate {
       return true;
     }
 
-    const userId = user.id || user._id;
+    const internalUserId = user._id;
+    const userUuid = user.uuid;
 
     // Check creator
-    if (hackathon.createdBy.toString() === userId.toString()) {
+    if (hackathon.createdBy.toString() === internalUserId.toString()) {
       request.hackathon = hackathon;
       request.hackathonRole = MemberRole.ADMIN;
       return true;
@@ -62,7 +63,7 @@ export class HackathonRoleGuard implements CanActivate {
     // Check organization membership
     const member = await this.membersService.getMember(
       hackathon.organizationId.toString(),
-      userId,
+      userUuid,
     );
 
     if (!member) {

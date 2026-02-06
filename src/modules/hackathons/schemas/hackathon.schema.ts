@@ -6,9 +6,33 @@ import { HackathonCategory } from '../enums/hackathon-category.enum';
 import { QuestionType } from '../enums/question-type.enum';
 import { User } from '../../users/schemas/user.schema';
 import { Organization } from '../../organizations/schemas/organization.schema';
+import { v4 as uuidv4 } from 'uuid';
 
-@Schema()
+@Schema({
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Track {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     default: () => new Types.ObjectId(),
@@ -37,8 +61,31 @@ export class Placement {
   amount: number;
 }
 
-@Schema()
+@Schema({
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Prize {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     default: () => new Types.ObjectId(),
@@ -48,8 +95,8 @@ export class Prize {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId })
-  trackId?: Types.ObjectId;
+  @Prop()
+  trackUuid?: string;
 
   @Prop({ type: [Placement], default: [] })
   placements: Placement[];
@@ -58,8 +105,31 @@ export class Prize {
   isActive: boolean;
 }
 
-@Schema()
+@Schema({
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class CustomQuestion {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     default: () => new Types.ObjectId(),
@@ -151,8 +221,32 @@ export class StatusHistory {
   reason?: string;
 }
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class Hackathon extends Document {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({ required: true, index: true })
   name: string;
 

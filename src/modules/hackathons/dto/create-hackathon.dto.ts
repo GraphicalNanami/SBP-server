@@ -7,6 +7,7 @@ import {
   IsDateString,
   IsUrl,
   IsEmail,
+  IsUUID,
 } from 'class-validator';
 import { HackathonCategory } from '../enums/hackathon-category.enum';
 import { HackathonVisibility } from '../enums/hackathon-visibility.enum';
@@ -25,7 +26,7 @@ export class CreateHackathonDto {
     example: '123e4567-e89b-12d3-a456-426614174000',
     description: 'Organization UUID',
   })
-  @IsString()
+  @IsUUID()
   @IsNotEmpty()
   organizationId: string;
 

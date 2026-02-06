@@ -6,24 +6,54 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import slugify from 'slugify';
 import { Hackathon } from './schemas/hackathon.schema';
 import { CreateHackathonDto } from './dto/create-hackathon.dto';
+import { UpdateHackathonDto } from './dto/update-hackathon.dto';
 import { MembersService } from '../organizations/members.service';
 import { HackathonStatus } from './enums/hackathon-status.enum';
+import { MemberRole } from '../organizations/enums/member-role.enum';
+import { UuidUtil } from '@/src/common/utils/uuid.util';
+import { UsersService } from '../users/users.service';
+import { OrganizationsService } from '../organizations/organizations.service';
 
 @Injectable()
 export class HackathonsService {
   constructor(
     @InjectModel(Hackathon.name) private hackathonModel: Model<Hackathon>,
     private membersService: MembersService,
+    private usersService: UsersService,
+    private organizationsService: OrganizationsService,
   ) {}
+
+  private async resolveUserId(
+    userId: string | Types.ObjectId,
+  ): Promise<Types.ObjectId> {
+    if (typeof userId === 'string' && UuidUtil.validate(userId)) {
+      const user = await this.usersService.findByUuid(userId);
+      if (!user) throw new NotFoundException('User not found');
+      return user._id;
+    }
+    return typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
+  }
+
+  private async resolveOrgId(orgId: string): Promise<Types.ObjectId> {
+    if (UuidUtil.validate(orgId)) {
+      const org = await this.organizationsService.findById(orgId);
+      if (!org) throw new NotFoundException('Organization not found');
+      return org._id;
+    }
+    return new Types.ObjectId(orgId);
+  }
 
   async create(
     userId: string,
     createDto: CreateHackathonDto,
   ): Promise<Hackathon> {
+    const uId = await this.resolveUserId(userId);
+    const oId = await this.resolveOrgId(createDto.organizationId);
+
     // Validate user is member of organization
     const member = await this.membersService.getMember(
       createDto.organizationId,
@@ -37,7 +67,7 @@ export class HackathonsService {
 
     // Check name uniqueness within organization
     const existing = await this.hackathonModel.findOne({
-      organizationId: createDto.organizationId,
+      organizationId: oId,
       name: createDto.name,
     });
     if (existing) {
@@ -54,13 +84,14 @@ export class HackathonsService {
 
     const newHackathon = new this.hackathonModel({
       ...createDto,
+      organizationId: oId,
       slug,
-      createdBy: userId,
+      createdBy: uId,
       status: HackathonStatus.DRAFT,
       statusHistory: [
         {
           status: HackathonStatus.DRAFT,
-          changedBy: userId,
+          changedBy: uId,
           changedAt: new Date(),
         },
       ],
@@ -119,7 +150,14 @@ export class HackathonsService {
   }
 
   async findById(id: string): Promise<Hackathon> {
-    const hackathon = await this.hackathonModel.findById(id).exec();
+    let query = {};
+    if (UuidUtil.validate(id)) {
+      query = { uuid: id };
+    } else {
+      query = { _id: new Types.ObjectId(id) };
+    }
+
+    const hackathon = await this.hackathonModel.findOne(query).exec();
     if (!hackathon) {
       throw new NotFoundException(`Hackathon with ID ${id} not found`);
     }
@@ -135,6 +173,95 @@ export class HackathonsService {
   }
 
   async findAllByOrganization(orgId: string): Promise<Hackathon[]> {
-    return this.hackathonModel.find({ organizationId: orgId }).exec();
+    const oId = await this.resolveOrgId(orgId);
+    return this.hackathonModel.find({ organizationId: oId }).exec();
+  }
+
+  async update(
+    hackathonId: string,
+    userId: string,
+    updateDto: UpdateHackathonDto,
+  ): Promise<Hackathon> {
+    const uId = await this.resolveUserId(userId);
+
+    // Fetch the hackathon
+    let query = {};
+    if (UuidUtil.validate(hackathonId)) {
+      query = { uuid: hackathonId };
+    } else {
+      query = { _id: new Types.ObjectId(hackathonId) };
+    }
+
+    const hackathon = await this.hackathonModel.findOne(query);
+    if (!hackathon) {
+      throw new NotFoundException(`Hackathon with ID ${hackathonId} not found`);
+    }
+
+    // Verify user has permission to update
+    const isCreator = hackathon.createdBy.toString() === uId.toString();
+    let hasPermission = isCreator;
+
+    if (!isCreator) {
+      // Check if user is an org admin or editor
+      const member = await this.membersService.getMember(
+        hackathon.organizationId.toString(),
+        userId,
+      );
+      hasPermission =
+        !!member &&
+        (member.role === MemberRole.ADMIN || member.role === MemberRole.EDITOR);
+    }
+
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        'You do not have permission to update this hackathon',
+      );
+    }
+
+    // Check name uniqueness if name is being changed
+    if (updateDto.name && updateDto.name !== hackathon.name) {
+      const existing = await this.hackathonModel.findOne({
+        organizationId: hackathon.organizationId,
+        name: updateDto.name,
+        _id: { $ne: hackathon._id },
+      });
+      if (existing) {
+        throw new ConflictException(
+          'A hackathon with this name already exists in your organization',
+        );
+      }
+
+      // Generate new slug
+      updateDto['slug'] = await this.generateUniqueSlug(updateDto.name);
+    }
+
+    // Validate timeline if any date fields are updated
+    if (
+      updateDto.startTime ||
+      updateDto.submissionDeadline ||
+      updateDto.preRegistrationEndTime ||
+      updateDto.judgingDeadline
+    ) {
+      const timelineData = {
+        startTime: updateDto.startTime || hackathon.startTime.toISOString(),
+        submissionDeadline:
+          updateDto.submissionDeadline ||
+          hackathon.submissionDeadline.toISOString(),
+        preRegistrationEndTime:
+          updateDto.preRegistrationEndTime ||
+          hackathon.preRegistrationEndTime?.toISOString(),
+        judgingDeadline:
+          updateDto.judgingDeadline ||
+          hackathon.judgingDeadline?.toISOString(),
+      };
+      this.validateTimeline(timelineData as any);
+    }
+
+    // Update the hackathon using set to handle nested objects properly
+    Object.keys(updateDto).forEach((key) => {
+      hackathon.set(key, updateDto[key]);
+    });
+
+    return hackathon.save();
   }
 }

@@ -1,18 +1,28 @@
 # Hackathons Module Context
 
 ## Responsibilities
-- Core CRUD for hackathons (Phase 1 implemented)
+- Core CRUD for hackathons (Phase 1 implemented, Update endpoint added)
 - Hackathon-specific event management
 - Registration rules and timelines
 - Team formation support
 - Approval workflow (DRAFT → UNDER_REVIEW → APPROVED/REJECTED by admins)
 - Public hackathon discovery and listing (only APPROVED & PUBLIC)
 - Multi-level permission management (Creator, Organization members, invited Admins)
+- Comprehensive hackathon updates including tracks, prizes, custom questions, and submission requirements
 
 ## Public Interfaces
 - `HackathonsController`: Organizer endpoints for hackathon management
+  - `POST /hackathons`: Create new hackathon (requires org membership)
+  - `GET /hackathons/:id`: Get hackathon by ID
+  - `GET /hackathons/slug/:slug`: Get hackathon by slug
+  - `GET /hackathons/organization/:orgId`: List hackathons by organization
+  - `PATCH /hackathons/:id`: Update hackathon (requires EDITOR role or creator)
 - `HackathonsService`: Core business logic for hackathon lifecycle
+  - `create()`: Create new hackathon with validation
+  - `update()`: Update hackathon with permission checks and validation
+  - `findById()`, `findBySlug()`, `findAllByOrganization()`: Read operations
 - `HackathonRoleGuard`: Permission enforcement based on organization roles and creator status
+- `UpdateHackathonDto`: Comprehensive DTO supporting partial updates of all hackathon fields including nested documents
 
 ## Invariants
 - Hackathons are created in `DRAFT` status
@@ -21,6 +31,11 @@
 - Hackathon names must be unique within an organization
 - Slugs are auto-generated and unique across the platform
 - Timeline constraints are enforced (start time in future, deadlines in logical order)
+- Only hackathon creators, organization admins, or organization editors can update a hackathon
+- Name changes trigger automatic slug regeneration to maintain uniqueness
+- Timeline validation is reapplied when any date field is modified
+- All update fields are optional - partial updates are fully supported
+- Nested documents (tracks, prizes, questions) can be fully replaced or modified via the update endpoint
 
 ## Dependencies
 - `UsersModule`: For creator and admin validation

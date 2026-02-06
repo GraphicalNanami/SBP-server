@@ -3,7 +3,23 @@ import { Document } from 'mongoose';
 import { UserRole } from '@/src/common/enums/user-role.enum';
 import { v4 as uuidv4 } from 'uuid';
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class User extends Document {
   @Prop({
     required: true,

@@ -6,7 +6,23 @@ import { Organization } from '@/src/modules/organizations/schemas/organization.s
 import { User } from '@/src/modules/users/schemas/user.schema';
 import { v4 as uuidv4 } from 'uuid';
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+  toObject: {
+    transform: (doc, ret) => {
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    },
+  },
+})
 export class OrganizationMember extends Document {
   @Prop({
     required: true,

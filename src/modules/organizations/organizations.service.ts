@@ -107,16 +107,10 @@ export class OrganizationsService {
   }
 
   async findById(id: string): Promise<Organization> {
-    let org;
-    if (UuidUtil.validate(id)) {
-      org = await this.organizationModel
-        .findOne({ uuid: id })
-        .populate('createdBy', 'name email avatar');
-    } else {
-      org = await this.organizationModel
-        .findById(id)
-        .populate('createdBy', 'name email avatar');
-    }
+    const query = UuidUtil.validate(id) ? { uuid: id } : { _id: id };
+    const org = await this.organizationModel
+      .findOne(query)
+      .populate('createdBy', 'name email avatar');
 
     if (!org) {
       throw new NotFoundException(`Organization with ID ${id} not found`);
@@ -143,12 +137,7 @@ export class OrganizationsService {
     orgId: string,
     updateDto: UpdateOrganizationProfileDto,
   ): Promise<Organization> {
-    let query: any;
-    if (UuidUtil.validate(orgId)) {
-      query = { uuid: orgId };
-    } else {
-      query = { _id: orgId };
-    }
+    const query = UuidUtil.validate(orgId) ? { uuid: orgId } : { _id: orgId };
 
     const org = await this.organizationModel.findOneAndUpdate(
       query,
@@ -165,12 +154,7 @@ export class OrganizationsService {
     orgId: string,
     updateDto: UpdateSocialLinksDto,
   ): Promise<Organization> {
-    let query: any;
-    if (UuidUtil.validate(orgId)) {
-      query = { uuid: orgId };
-    } else {
-      query = { _id: orgId };
-    }
+    const query = UuidUtil.validate(orgId) ? { uuid: orgId } : { _id: orgId };
 
     const org = await this.organizationModel.findOneAndUpdate(
       query,

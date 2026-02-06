@@ -36,7 +36,7 @@ export class OrganizationRoleGuard implements CanActivate {
 
     const member = await this.membersService.getMember(
       orgId,
-      user.id || user._id,
+      user.uuid || user.id || user._id,
     );
     if (!member) {
       throw new ForbiddenException('You are not a member of this organization');

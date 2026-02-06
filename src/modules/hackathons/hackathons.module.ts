@@ -5,6 +5,7 @@ import { HackathonsService } from './hackathons.service';
 import { Hackathon, HackathonSchema } from './schemas/hackathon.schema';
 import { OrganizationsModule } from '../organizations/organizations.module';
 import { HackathonRoleGuard } from './guards/hackathon-role.guard';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { HackathonRoleGuard } from './guards/hackathon-role.guard';
       { name: Hackathon.name, schema: HackathonSchema },
     ]),
     OrganizationsModule,
+    UsersModule,
   ],
   controllers: [HackathonsController],
   providers: [HackathonsService, HackathonRoleGuard],

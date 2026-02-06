@@ -59,4 +59,23 @@ export class UsersService {
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
+
+  /**
+   * Search users by email or name (partial match)
+   * Used for invitations and user discovery
+   * @param query - search term (email or name)
+   * @param limit - maximum number of results (default: 10, max: 50)
+   * @returns Array of users matching the search criteria
+   */
+  async searchUsers(query: string, limit: number = 10): Promise<User[]> {
+    const searchRegex = new RegExp(query, 'i'); // Case-insensitive search
+
+    return this.userModel
+      .find({
+        $or: [{ email: searchRegex }, { name: searchRegex }],
+      })
+      .select('uuid email name avatar role')
+      .limit(Math.min(limit, 50)) // Enforce max limit
+      .exec();
+  }
 }
