@@ -269,4 +269,73 @@ export class HackathonsService {
 
     return hackathon.save();
   }
+
+  /**
+   * Submit a hackathon for admin review
+   * Transitions from DRAFT or REJECTED to UNDER_REVIEW
+   * @param hackathonId - Hackathon UUID or ObjectId
+   * @param userId - User submitting (must be creator or org admin)
+   * @returns Updated hackathon
+   */
+  async submitForReview(
+    hackathonId: string,
+    userId: string,
+  ): Promise<Hackathon> {
+    const uId = await this.resolveUserId(userId);
+
+    // Fetch the hackathon
+    let query = {};
+    if (UuidUtil.validate(hackathonId)) {
+      query = { uuid: hackathonId };
+    } else {
+      query = { _id: new Types.ObjectId(hackathonId) };
+    }
+
+    const hackathon = await this.hackathonModel.findOne(query);
+    if (!hackathon) {
+      throw new NotFoundException(`Hackathon with ID ${hackathonId} not found`);
+    }
+
+    // Verify user has permission (creator or org admin)
+    const isCreator = hackathon.createdBy.toString() === uId.toString();
+    let hasPermission = isCreator;
+
+    if (!isCreator) {
+      const member = await this.membersService.getMember(
+        hackathon.organizationId.toString(),
+        userId,
+      );
+      hasPermission = !!member && member.role === MemberRole.ADMIN;
+    }
+
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        'Only the creator or organization admin can submit a hackathon for review',
+      );
+    }
+
+    // Validate current status
+    if (
+      hackathon.status !== HackathonStatus.DRAFT &&
+      hackathon.status !== HackathonStatus.REJECTED
+    ) {
+      throw new BadRequestException(
+        `Cannot submit hackathon with status ${hackathon.status}. Only DRAFT or REJECTED hackathons can be submitted for review.`,
+      );
+    }
+
+    // Update status and approval details
+    hackathon.status = HackathonStatus.UNDER_REVIEW;
+    hackathon.approvalDetails.submittedForReviewAt = new Date();
+
+    // Add to status history
+    hackathon.statusHistory.push({
+      status: HackathonStatus.UNDER_REVIEW,
+      changedBy: uId,
+      changedAt: new Date(),
+      reason: 'Submitted for admin review',
+    } as any);
+
+    return hackathon.save();
+  }
 }

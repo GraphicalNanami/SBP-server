@@ -6,6 +6,8 @@
 - Registration rules and timelines
 - Team formation support
 - Approval workflow (DRAFT → UNDER_REVIEW → APPROVED/REJECTED by admins)
+  - Organizers can submit hackathons for review
+  - Admins approve or reject submissions (separate admin endpoints)
 - Public hackathon discovery and listing (only APPROVED & PUBLIC)
 - Multi-level permission management (Creator, Organization members, invited Admins)
 - Comprehensive hackathon updates including tracks, prizes, custom questions, and submission requirements
@@ -17,9 +19,11 @@
   - `GET /hackathons/slug/:slug`: Get hackathon by slug
   - `GET /hackathons/organization/:orgId`: List hackathons by organization
   - `PATCH /hackathons/:id`: Update hackathon (requires EDITOR role or creator)
+  - `POST /hackathons/:id/submit-for-review`: Submit hackathon for admin review (requires creator or org ADMIN)
 - `HackathonsService`: Core business logic for hackathon lifecycle
   - `create()`: Create new hackathon with validation
   - `update()`: Update hackathon with permission checks and validation
+  - `submitForReview()`: Submit hackathon for admin review (DRAFT/REJECTED → UNDER_REVIEW)
   - `findById()`, `findBySlug()`, `findAllByOrganization()`: Read operations
 - `HackathonRoleGuard`: Permission enforcement based on organization roles and creator status
 - `UpdateHackathonDto`: Comprehensive DTO supporting partial updates of all hackathon fields including nested documents
@@ -32,6 +36,10 @@
 - Slugs are auto-generated and unique across the platform
 - Timeline constraints are enforced (start time in future, deadlines in logical order)
 - Only hackathon creators, organization admins, or organization editors can update a hackathon
+- Only hackathon creators or organization admins can submit for review
+- Only `DRAFT` or `REJECTED` hackathons can be submitted for review
+- Submission for review transitions status to `UNDER_REVIEW` and records submission timestamp
+- Status transitions are tracked in `statusHistory` with user, timestamp, and reason
 - Name changes trigger automatic slug regeneration to maintain uniqueness
 - Timeline validation is reapplied when any date field is modified
 - All update fields are optional - partial updates are fully supported

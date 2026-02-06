@@ -102,4 +102,35 @@ export class HackathonsController {
     const userId = req.user.uuid || req.user.id || req.user._id;
     return this.hackathonsService.update(params.id, userId, updateDto);
   }
+
+  @Post(':id/submit-for-review')
+  @UseGuards(JwtAuthGuard, HackathonRoleGuard)
+  @RequireHackathonRole(MemberRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Submit hackathon for admin review',
+    description:
+      'Submits a hackathon for admin approval. Only DRAFT or REJECTED hackathons can be submitted. Requires creator or organization admin permissions.',
+  })
+  @ApiParam({ name: 'id', description: 'Hackathon UUID or ID' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Hackathon submitted for review successfully. Status changed to UNDER_REVIEW.',
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad Request - Hackathon is not in DRAFT or REJECTED status.',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Only creator or org admin can submit for review.',
+  })
+  @ApiResponse({ status: 404, description: 'Hackathon not found.' })
+  async submitForReview(@Param() params: UuidParamDto, @Req() req: any) {
+    const userId = req.user.uuid || req.user.id || req.user._id;
+    return this.hackathonsService.submitForReview(params.id, userId);
+  }
 }
