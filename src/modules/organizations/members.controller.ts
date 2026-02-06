@@ -10,13 +10,13 @@ import {
   Req,
   Query,
 } from '@nestjs/common';
-import { MembersService } from './members.service';
-import { InviteMemberDto } from './dto/invite-member.dto';
-import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { OrganizationRoleGuard } from './guards/organization-role.guard';
-import { RequireRole } from './decorators/require-role.decorator';
-import { MemberRole } from './enums/member-role.enum';
+import { MembersService } from '@/modules/organizations/members.service';
+import { InviteMemberDto } from '@/modules/organizations/dto/invite-member.dto';
+import { UpdateMemberRoleDto } from '@/modules/organizations/dto/update-member-role.dto';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { OrganizationRoleGuard } from '@/modules/organizations/guards/organization-role.guard';
+import { RequireRole } from '@/modules/organizations/decorators/require-role.decorator';
+import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
 
 @Controller('organizations/:id/members')
 @UseGuards(JwtAuthGuard, OrganizationRoleGuard)

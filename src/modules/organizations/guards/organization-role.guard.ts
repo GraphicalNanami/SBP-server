@@ -5,9 +5,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { MembersService } from '../members.service';
-import { REQUIRE_ROLE_KEY } from '../decorators/require-role.decorator';
-import { MemberRole } from '../enums/member-role.enum';
+import { MembersService } from '@/modules/organizations/members.service';
+import { REQUIRE_ROLE_KEY } from '@/modules/organizations/decorators/require-role.decorator';
+import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
 
 @Injectable()
 export class OrganizationRoleGuard implements CanActivate {

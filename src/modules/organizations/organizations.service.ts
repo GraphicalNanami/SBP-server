@@ -7,14 +7,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import slugify from 'slugify';
-import { Organization } from './schemas/organization.schema';
-import { OrganizationMember } from './schemas/organization-member.schema';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationProfileDto } from './dto/update-organization-profile.dto';
-import { UpdateSocialLinksDto } from './dto/update-social-links.dto';
-import { MemberRole } from './enums/member-role.enum';
-import { MemberStatus } from './enums/member-status.enum';
-import { OrganizationStatus } from './enums/organization-status.enum';
+import { Organization } from '@/modules/organizations/schemas/organization.schema';
+import { OrganizationMember } from '@/modules/organizations/schemas/organization-member.schema';
+import { CreateOrganizationDto } from '@/modules/organizations/dto/create-organization.dto';
+import { UpdateOrganizationProfileDto } from '@/modules/organizations/dto/update-organization-profile.dto';
+import { UpdateSocialLinksDto } from '@/modules/organizations/dto/update-social-links.dto';
+import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
+import { MemberStatus } from '@/modules/organizations/enums/member-status.enum';
+import { OrganizationStatus } from '@/modules/organizations/enums/organization-status.enum';
 
 @Injectable()
 export class OrganizationsService {

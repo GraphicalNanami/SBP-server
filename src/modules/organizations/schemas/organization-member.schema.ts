@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { MemberRole } from '../enums/member-role.enum';
-import { MemberStatus } from '../enums/member-status.enum';
-import { Organization } from './organization.schema';
-import { User } from '../../users/schemas/user.schema';
+import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
+import { MemberStatus } from '@/modules/organizations/enums/member-status.enum';
+import { Organization } from '@/modules/organizations/schemas/organization.schema';
+import { User } from '@/modules/users/schemas/user.schema';
 
 @Schema({ timestamps: true })
 export class OrganizationMember extends Document {

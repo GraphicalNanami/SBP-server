@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { OrganizationStatus } from '../enums/organization-status.enum';
-import { User } from '../../users/schemas/user.schema';
+import { OrganizationStatus } from '@/modules/organizations/enums/organization-status.enum';
+import { User } from '@/modules/users/schemas/user.schema';
 
 export class SocialLinks {
   @Prop()

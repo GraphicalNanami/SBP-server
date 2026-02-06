@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Web3SkillLevel } from '../enums/web3-skill-level.enum';
+import { Web3SkillLevel } from '@/modules/experience/enums/web3-skill-level.enum';
 
 @Schema({ timestamps: true })
 export class Experience extends Document {
