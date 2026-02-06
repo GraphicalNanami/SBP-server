@@ -53,7 +53,6 @@ export class UsersService {
     return newUser.save();
   }
 
-
   @LogInteraction()
   async update(id: string, updateData: Partial<User>): Promise<User | null> {
     return this.userModel
@@ -61,4 +60,3 @@ export class UsersService {
       .exec();
   }
 }
-

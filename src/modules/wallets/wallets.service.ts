@@ -9,7 +9,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wallet } from '@/src/modules/wallets/schemas/wallet.schema';
 import { StellarVerificationService } from '@/src/modules/wallets/services/stellar-verification.service';
-import { AddWalletDto, UpdateWalletDto } from '@/src/modules/wallets/dto/wallet.dto';
+import {
+  AddWalletDto,
+  UpdateWalletDto,
+} from '@/src/modules/wallets/dto/wallet.dto';
 import { UsersService } from '@/src/modules/users/users.service';
 import { UuidUtil } from '@/src/common/utils/uuid.util';
 
@@ -23,11 +26,13 @@ export class WalletsService {
     private usersService: UsersService,
   ) {}
 
-  private async resolveUserId(userId: string | Types.ObjectId): Promise<Types.ObjectId> {
+  private async resolveUserId(
+    userId: string | Types.ObjectId,
+  ): Promise<Types.ObjectId> {
     if (typeof userId === 'string' && UuidUtil.validate(userId)) {
       const user = await this.usersService.findByUuid(userId);
       if (!user) throw new NotFoundException('User not found');
-      return user._id as Types.ObjectId;
+      return user._id;
     }
     return typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
   }
@@ -70,17 +75,17 @@ export class WalletsService {
     });
 
     await wallet.save();
-    // Use wallet UUID for challenge if available, or fallback to _id if needed, 
-    // but the plan implies shifting to UUID. 
+    // Use wallet UUID for challenge if available, or fallback to _id if needed,
+    // but the plan implies shifting to UUID.
     // However, existing challenge verification logic might depend on ID format?
     // StellarVerificationService generates challenge. It takes an identifier.
     // Let's pass the UUID if we want to move to UUIDs publicly.
     // But let's check what verifySignature expects.
     // For now, let's stick to _id.toString() or change to uuid?
-    // The plan says "Update all wallet operations". 
+    // The plan says "Update all wallet operations".
     // Let's use uuid for challenge generation to be consistent with public ID.
     const challenge = await this.stellarVerificationService.generateChallenge(
-      wallet.uuid, 
+      wallet.uuid,
     );
 
     return { wallet, challenge };
@@ -93,12 +98,12 @@ export class WalletsService {
     challenge: string,
   ): Promise<Wallet> {
     const uId = await this.resolveUserId(userId);
-    
-    let query: any = { userId: uId };
+
+    const query: any = { userId: uId };
     if (UuidUtil.validate(walletId)) {
-        query.uuid = walletId;
+      query.uuid = walletId;
     } else {
-        query._id = new Types.ObjectId(walletId);
+      query._id = new Types.ObjectId(walletId);
     }
 
     const wallet = await this.walletModel.findOne(query);
@@ -128,12 +133,12 @@ export class WalletsService {
     data: UpdateWalletDto,
   ): Promise<Wallet> {
     const uId = await this.resolveUserId(userId);
-    
-    let query: any = { userId: uId };
+
+    const query: any = { userId: uId };
     if (UuidUtil.validate(walletId)) {
-        query.uuid = walletId;
+      query.uuid = walletId;
     } else {
-        query._id = new Types.ObjectId(walletId);
+      query._id = new Types.ObjectId(walletId);
     }
 
     const wallet = await this.walletModel.findOneAndUpdate(
@@ -152,11 +157,11 @@ export class WalletsService {
   async removeWallet(userId: string, walletId: string): Promise<void> {
     const uId = await this.resolveUserId(userId);
 
-    let query: any = { userId: uId };
+    const query: any = { userId: uId };
     if (UuidUtil.validate(walletId)) {
-        query.uuid = walletId;
+      query.uuid = walletId;
     } else {
-        query._id = new Types.ObjectId(walletId);
+      query._id = new Types.ObjectId(walletId);
     }
 
     const wallet = await this.walletModel.findOne(query);
@@ -177,11 +182,11 @@ export class WalletsService {
   async setPrimary(userId: string, walletId: string): Promise<Wallet> {
     const uId = await this.resolveUserId(userId);
 
-    let query: any = { userId: uId };
+    const query: any = { userId: uId };
     if (UuidUtil.validate(walletId)) {
-        query.uuid = walletId;
+      query.uuid = walletId;
     } else {
-        query._id = new Types.ObjectId(walletId);
+      query._id = new Types.ObjectId(walletId);
     }
 
     const wallet = await this.walletModel.findOne(query);
@@ -191,7 +196,9 @@ export class WalletsService {
     }
 
     if (!wallet.isVerified) {
-      throw new BadRequestException('Only verified wallets can be set as primary');
+      throw new BadRequestException(
+        'Only verified wallets can be set as primary',
+      );
     }
 
     // Atomic update to unset other primary wallets and set the new one
@@ -204,4 +211,3 @@ export class WalletsService {
     return wallet.save();
   }
 }
-

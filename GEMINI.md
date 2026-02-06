@@ -353,3 +353,8 @@ but shall look like @/src/module/service for clear readability This will enhance
 ## Rule of logging 
 
 everything shall be logged 
+
+
+## Rule of API logging 
+
+Every route shall be documented by swagger response , payload and everything

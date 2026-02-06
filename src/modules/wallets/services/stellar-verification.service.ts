@@ -26,14 +26,19 @@ export class StellarVerificationService {
     challenge: string,
     walletId: string,
   ): Promise<boolean> {
-    const storedChallenge = await this.redisService.get(`challenge:${walletId}`);
+    const storedChallenge = await this.redisService.get(
+      `challenge:${walletId}`,
+    );
     if (!storedChallenge || storedChallenge !== challenge) {
       throw new BadRequestException('Challenge expired or invalid');
     }
 
     try {
       const keypair = Keypair.fromPublicKey(address);
-      const isVerified = keypair.verify(Buffer.from(challenge), Buffer.from(signature, 'base64'));
+      const isVerified = keypair.verify(
+        Buffer.from(challenge),
+        Buffer.from(signature, 'base64'),
+      );
       if (isVerified) {
         // Delete challenge after successful verification
         await this.redisService.del(`challenge:${walletId}`);

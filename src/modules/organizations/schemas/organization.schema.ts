@@ -8,7 +8,6 @@ export class SocialLinks {
   @Prop()
   twitter?: string;
 
-
   @Prop()
   telegram?: string;
 

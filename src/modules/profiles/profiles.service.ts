@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Profile } from '@/src/modules/profiles/schemas/profile.schema';
@@ -33,12 +38,12 @@ export class ProfilesService {
         // Resolve UUID to User ObjectId
         const user = await this.usersService.findByUuid(userId);
         if (!user) return null;
-        id = user._id as Types.ObjectId;
+        id = user._id;
       } else if (Types.ObjectId.isValid(userId)) {
         id = new Types.ObjectId(userId);
       } else {
-         // Invalid format
-         return null; 
+        // Invalid format
+        return null;
       }
     } else {
       id = userId;
@@ -60,20 +65,20 @@ export class ProfilesService {
   ): Promise<Profile | null> {
     // findByUserId handles the resolution logic now, but we need the ID for update
     // We can't reuse findByUserId directly for updateOne, but we can resolve the ID first.
-    
+
     let id: Types.ObjectId;
     if (typeof userId === 'string') {
-       if (UuidUtil.validate(userId)) {
-          const user = await this.usersService.findByUuid(userId);
-          if (!user) return null; // Or throw NotFound
-          id = user._id as Types.ObjectId;
-       } else if (Types.ObjectId.isValid(userId)) {
-          id = new Types.ObjectId(userId);
-       } else {
-          return null;
-       }
+      if (UuidUtil.validate(userId)) {
+        const user = await this.usersService.findByUuid(userId);
+        if (!user) return null; // Or throw NotFound
+        id = user._id;
+      } else if (Types.ObjectId.isValid(userId)) {
+        id = new Types.ObjectId(userId);
+      } else {
+        return null;
+      }
     } else {
-       id = userId;
+      id = userId;
     }
 
     return this.profileModel
@@ -118,18 +123,18 @@ export class ProfilesService {
 
     // We can use the resolved user._id to fetch related data
     // assuming other services also expect userId (which might be UUID or ObjectId)
-    // But since we have the user object, we can pass user._id to be safe and efficient if they support it, 
+    // But since we have the user object, we can pass user._id to be safe and efficient if they support it,
     // OR pass the original userId (UUID) if they are updated to handle it.
     // The plan says "Update all wallet operations... Update findByUserId...".
     // If I pass UUID to them, they should handle it.
-    
-    // However, for consistency and performance (avoiding re-lookup), 
+
+    // However, for consistency and performance (avoiding re-lookup),
     // if I have the ObjectId, I could use it if the other services support it.
     // But other services are also being updated to support UUID.
-    
-    // Let's rely on the services handling the ID passed to them. 
+
+    // Let's rely on the services handling the ID passed to them.
     // BUT, I'm passing `userId` which comes from the controller.
-    
+
     const [profile, experience, wallets] = await Promise.all([
       this.findByUserId(userId), // Handles UUID
       this.experienceService.findByUserId(userId), // Needs update
@@ -150,5 +155,3 @@ export class ProfilesService {
     };
   }
 }
-
-

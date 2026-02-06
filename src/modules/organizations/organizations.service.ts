@@ -31,11 +31,13 @@ export class OrganizationsService {
     private usersService: UsersService,
   ) {}
 
-  private async resolveUserId(userId: string | Types.ObjectId): Promise<Types.ObjectId> {
+  private async resolveUserId(
+    userId: string | Types.ObjectId,
+  ): Promise<Types.ObjectId> {
     if (typeof userId === 'string' && UuidUtil.validate(userId)) {
       const user = await this.usersService.findByUuid(userId);
       if (!user) throw new NotFoundException('User not found');
-      return user._id as Types.ObjectId;
+      return user._id;
     }
     return typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
   }
@@ -107,11 +109,15 @@ export class OrganizationsService {
   async findById(id: string): Promise<Organization> {
     let org;
     if (UuidUtil.validate(id)) {
-      org = await this.organizationModel.findOne({ uuid: id }).populate('createdBy', 'name email avatar');
+      org = await this.organizationModel
+        .findOne({ uuid: id })
+        .populate('createdBy', 'name email avatar');
     } else {
-      org = await this.organizationModel.findById(id).populate('createdBy', 'name email avatar');
+      org = await this.organizationModel
+        .findById(id)
+        .populate('createdBy', 'name email avatar');
     }
-    
+
     if (!org) {
       throw new NotFoundException(`Organization with ID ${id} not found`);
     }
@@ -139,9 +145,9 @@ export class OrganizationsService {
   ): Promise<Organization> {
     let query: any;
     if (UuidUtil.validate(orgId)) {
-        query = { uuid: orgId };
+      query = { uuid: orgId };
     } else {
-        query = { _id: orgId };
+      query = { _id: orgId };
     }
 
     const org = await this.organizationModel.findOneAndUpdate(
@@ -161,9 +167,9 @@ export class OrganizationsService {
   ): Promise<Organization> {
     let query: any;
     if (UuidUtil.validate(orgId)) {
-        query = { uuid: orgId };
+      query = { uuid: orgId };
     } else {
-        query = { _id: orgId };
+      query = { _id: orgId };
     }
 
     const org = await this.organizationModel.findOneAndUpdate(
@@ -177,4 +183,3 @@ export class OrganizationsService {
     return org;
   }
 }
-

@@ -29,7 +29,10 @@ export class AuthService {
     const { email, password, name } = registerDto;
 
     // Hash password
-    const bcryptRounds = parseInt(this.configService.get<string>('BCRYPT_ROUNDS', '10'), 10);
+    const bcryptRounds = parseInt(
+      this.configService.get<string>('BCRYPT_ROUNDS', '10'),
+      10,
+    );
     const hashedPassword = await hash(password, bcryptRounds);
 
     // Create user (UsersService handles duplicate check)
@@ -37,7 +40,7 @@ export class AuthService {
 
     // Create profile for new user
     await this.profilesService.create({
-      userId: user._id as Types.ObjectId,
+      userId: user._id,
     });
 
     // Generate tokens
@@ -148,4 +151,3 @@ export class AuthService {
     await this.redisService.del(`refresh:${tokenHash}`);
   }
 }
-

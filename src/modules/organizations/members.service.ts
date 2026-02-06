@@ -26,20 +26,22 @@ export class MembersService {
     private usersService: UsersService,
   ) {}
 
-  private async resolveUserId(userId: string | Types.ObjectId): Promise<Types.ObjectId> {
+  private async resolveUserId(
+    userId: string | Types.ObjectId,
+  ): Promise<Types.ObjectId> {
     if (typeof userId === 'string' && UuidUtil.validate(userId)) {
       const user = await this.usersService.findByUuid(userId);
       if (!user) throw new NotFoundException('User not found');
-      return user._id as Types.ObjectId;
+      return user._id;
     }
     return typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
   }
 
   private async resolveOrgId(orgId: string): Promise<Types.ObjectId> {
     if (UuidUtil.validate(orgId)) {
-        const org = await this.organizationModel.findOne({ uuid: orgId });
-        if (!org) throw new NotFoundException('Organization not found');
-        return org._id as Types.ObjectId;
+      const org = await this.organizationModel.findOne({ uuid: orgId });
+      if (!org) throw new NotFoundException('Organization not found');
+      return org._id;
     }
     return new Types.ObjectId(orgId);
   }
@@ -49,7 +51,7 @@ export class MembersService {
     filters: { status?: MemberStatus; role?: MemberRole } = {},
   ) {
     const oId = await this.resolveOrgId(orgId);
-    
+
     const query: any = { organizationId: oId };
     if (filters.status) query.status = filters.status;
     if (filters.role) query.role = filters.role;
@@ -124,12 +126,12 @@ export class MembersService {
   ) {
     const oId = await this.resolveOrgId(orgId);
     const uUpdatedBy = await this.resolveUserId(updatedBy);
-    
-    let query: any = { organizationId: oId };
+
+    const query: any = { organizationId: oId };
     if (UuidUtil.validate(memberId)) {
-        query.uuid = memberId;
+      query.uuid = memberId;
     } else {
-        query._id = new Types.ObjectId(memberId);
+      query._id = new Types.ObjectId(memberId);
     }
 
     const member = await this.memberModel.findOne(query);
@@ -162,11 +164,11 @@ export class MembersService {
     const oId = await this.resolveOrgId(orgId);
     const uRemovedBy = await this.resolveUserId(removedBy);
 
-    let query: any = { organizationId: oId };
+    const query: any = { organizationId: oId };
     if (UuidUtil.validate(memberId)) {
-        query.uuid = memberId;
+      query.uuid = memberId;
     } else {
-        query._id = new Types.ObjectId(memberId);
+      query._id = new Types.ObjectId(memberId);
     }
 
     const member = await this.memberModel.findOne(query);
@@ -216,4 +218,3 @@ export class MembersService {
     return member ? member.role : null;
   }
 }
-

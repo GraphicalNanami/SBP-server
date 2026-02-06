@@ -13,6 +13,7 @@ import { RedisModule } from '@/src/database/redis/redis.module';
 import { OrganizationsModule } from '@/src/modules/organizations/organizations.module';
 import { ExperienceModule } from '@/src/modules/experience/experience.module';
 import { WalletsModule } from '@/src/modules/wallets/wallets.module';
+import { HackathonsModule } from './modules/hackathons/hackathons.module';
 
 @Module({
   imports: [
@@ -31,7 +32,10 @@ import { WalletsModule } from '@/src/modules/wallets/wallets.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => [
         {
-          rootPath: join(process.cwd(), configService.get<string>('UPLOAD_DIR', './uploads')),
+          rootPath: join(
+            process.cwd(),
+            configService.get<string>('UPLOAD_DIR', './uploads'),
+          ),
           serveRoot: '/uploads',
         },
       ],

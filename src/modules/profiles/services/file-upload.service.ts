@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'path';
 import * as fs from 'fs/promises';
@@ -59,7 +63,7 @@ export class FileUploadService {
       await fs.unlink(fullPath);
     } catch (error) {
       // Ignore errors if file doesn't exist
-      if ((error as any).code !== 'ENOENT') {
+      if (error.code !== 'ENOENT') {
         console.error(`Failed to delete old picture: ${fullPath}`, error);
       }
     }
