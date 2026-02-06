@@ -1,0 +1,11 @@
+export enum HackathonCategory {
+  DEFI = 'DEFI',
+  NFT = 'NFT',
+  GAMING = 'GAMING',
+  SOCIAL = 'SOCIAL',
+  INFRASTRUCTURE = 'INFRASTRUCTURE',
+  TOOLING = 'TOOLING',
+  EDUCATION = 'EDUCATION',
+  DAO = 'DAO',
+  GENERAL = 'GENERAL',
+}

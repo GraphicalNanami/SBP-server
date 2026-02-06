@@ -9,6 +9,7 @@ import { UsersModule } from './modules/users/users.module';
 import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RedisModule } from './database/redis/redis.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { HackathonsModule } from './modules/hackathons/hackathons.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrganizationsModule } from './modules/organizations/organizations.modul
     ProfilesModule,
     AuthModule,
     OrganizationsModule,
+    HackathonsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
