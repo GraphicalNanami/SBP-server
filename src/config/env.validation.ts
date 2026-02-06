@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
 
 enum Environment {
   Development = 'development',
@@ -29,21 +29,27 @@ class EnvironmentVariables {
   @IsNumber()
   JWT_REFRESH_TTL: number;
 
+  @IsOptional()
   @IsString()
   GITHUB_CLIENT_ID: string;
 
+  @IsOptional()
   @IsString()
   GITHUB_CLIENT_SECRET: string;
 
+  @IsOptional()
   @IsString()
   GITHUB_CALLBACK_URL: string;
 
+  @IsOptional()
   @IsString()
   GOOGLE_CLIENT_ID: string;
 
+  @IsOptional()
   @IsString()
   GOOGLE_CLIENT_SECRET: string;
 
+  @IsOptional()
   @IsString()
   GOOGLE_CALLBACK_URL: string;
 

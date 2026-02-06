@@ -10,6 +10,7 @@ import { ProfilesModule } from './modules/profiles/profiles.module';
 import { RedisModule } from './database/redis/redis.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
+import { EventsIndexerModule } from './modules/events-indexer/events-indexer.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { HackathonsModule } from './modules/hackathons/hackathons.module';
     AuthModule,
     OrganizationsModule,
     HackathonsModule,
+    EventsIndexerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
