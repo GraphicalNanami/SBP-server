@@ -9,7 +9,10 @@ import { Organization } from '../../organizations/schemas/organization.schema';
 
 @Schema()
 export class Track {
-  @Prop({ type: MongooseSchema.Types.ObjectId, default: () => new Types.ObjectId() })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    default: () => new Types.ObjectId(),
+  })
   _id: Types.ObjectId;
 
   @Prop({ required: true })
@@ -36,7 +39,10 @@ export class Placement {
 
 @Schema()
 export class Prize {
-  @Prop({ type: MongooseSchema.Types.ObjectId, default: () => new Types.ObjectId() })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    default: () => new Types.ObjectId(),
+  })
   _id: Types.ObjectId;
 
   @Prop({ required: true })
@@ -54,7 +60,10 @@ export class Prize {
 
 @Schema()
 export class CustomQuestion {
-  @Prop({ type: MongooseSchema.Types.ObjectId, default: () => new Types.ObjectId() })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    default: () => new Types.ObjectId(),
+  })
   _id: Types.ObjectId;
 
   @Prop({ required: true })
@@ -153,7 +162,11 @@ export class Hackathon extends Document {
   @Prop({ type: String, enum: HackathonCategory, required: true })
   category: HackathonCategory;
 
-  @Prop({ type: String, enum: HackathonVisibility, default: HackathonVisibility.PUBLIC })
+  @Prop({
+    type: String,
+    enum: HackathonVisibility,
+    default: HackathonVisibility.PUBLIC,
+  })
   visibility: HackathonVisibility;
 
   @Prop()
@@ -204,10 +217,20 @@ export class Hackathon extends Document {
   @Prop()
   adminContact: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Organization', required: true, index: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Organization',
+    required: true,
+    index: true,
+  })
   organizationId: Organization | Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true, index: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
+  })
   createdBy: User | Types.ObjectId;
 
   @Prop({

@@ -76,6 +76,13 @@ Each domain:
 * RBAC for admin actions
 * Rate limiting on public endpoints
 
+### 9. Identifiers
+
+* Use UUID v4 for all public-facing identifiers
+* MongoDB `_id` (ObjectId) is for internal use only
+* APIs must return and accept `uuid` strings
+* `uuid` fields must be indexed and unique
+
 ---
 
 # High-Level Domains
@@ -336,3 +343,12 @@ Our package  wil be mantained by the bun intrinsically
 ## Rule of build 
 
 Anyone is not allowed to run build .
+
+## Rule of paths
+
+PAths shall now look like ../../../service 
+but shall look like @/src/module/service for clear readability This will enhance our code readability a lot.
+
+## Rule of API logging 
+
+Every route shall be documented by swagger response , payload and everything

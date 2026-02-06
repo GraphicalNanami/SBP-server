@@ -10,35 +10,55 @@ import {
   Req,
   Query,
 } from '@nestjs/common';
-import { MembersService } from './members.service';
-import { InviteMemberDto } from './dto/invite-member.dto';
-import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { OrganizationRoleGuard } from './guards/organization-role.guard';
-import { RequireRole } from './decorators/require-role.decorator';
-import { MemberRole } from './enums/member-role.enum';
+import { MembersService } from '@/src/modules/organizations/members.service';
+import { InviteMemberDto } from '@/src/modules/organizations/dto/invite-member.dto';
+import { UpdateMemberRoleDto } from '@/src/modules/organizations/dto/update-member-role.dto';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { OrganizationRoleGuard } from '@/src/modules/organizations/guards/organization-role.guard';
+import { RequireRole } from '@/src/modules/organizations/decorators/require-role.decorator';
+import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
+import { UuidParamDto } from '@/src/common/dto/uuid-param.dto';
+import { MemberParamsDto } from '@/src/modules/organizations/dto/member-params.dto';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+@ApiTags('Organization Members')
+@ApiBearerAuth()
 @Controller('organizations/:id/members')
 @UseGuards(JwtAuthGuard, OrganizationRoleGuard)
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 
   @Get()
-  async listMembers(@Param('id') orgId: string, @Query() query: any) {
-    return this.membersService.findByOrganizationId(orgId, query);
+  @ApiOperation({ summary: 'List organization members' })
+  @ApiParam({ name: 'id', description: 'Organization UUID' })
+  @ApiResponse({ status: 200, description: 'Return list of members.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  async listMembers(@Param() params: UuidParamDto, @Query() query: any) {
+    return this.membersService.findByOrganizationId(params.id, query);
   }
 
   @Post('invite')
   @RequireRole(MemberRole.ADMIN)
+  @ApiOperation({ summary: 'Invite a member to the organization' })
+  @ApiParam({ name: 'id', description: 'Organization UUID' })
+  @ApiResponse({ status: 201, description: 'Member invited successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Requires ADMIN role.' })
   async inviteMember(
-    @Param('id') orgId: string,
+    @Param() params: UuidParamDto,
     @Req() req: any,
     @Body() inviteDto: InviteMemberDto,
   ) {
-    const userId = req.user.id || req.user._id;
     return this.membersService.inviteMember(
-      orgId,
-      userId,
+      params.id,
+      req.user.uuid,
       inviteDto.email,
       inviteDto.role,
     );
@@ -46,29 +66,38 @@ export class MembersController {
 
   @Patch(':memberId/role')
   @RequireRole(MemberRole.ADMIN)
+  @ApiOperation({ summary: 'Update member role' })
+  @ApiParam({ name: 'id', description: 'Organization UUID' })
+  @ApiParam({ name: 'memberId', description: 'Member UUID (User ID)' })
+  @ApiResponse({ status: 200, description: 'Member role updated.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Requires ADMIN role.' })
   async updateRole(
-    @Param('id') orgId: string,
-    @Param('memberId') memberId: string,
+    @Param() params: MemberParamsDto,
     @Req() req: any,
     @Body() updateDto: UpdateMemberRoleDto,
   ) {
-    const userId = req.user.id || req.user._id;
     return this.membersService.updateMemberRole(
-      orgId,
-      memberId,
+      params.id,
+      params.memberId,
       updateDto.role,
-      userId,
+      req.user.uuid,
     );
   }
 
   @Delete(':memberId')
   @RequireRole(MemberRole.ADMIN)
-  async removeMember(
-    @Param('id') orgId: string,
-    @Param('memberId') memberId: string,
-    @Req() req: any,
-  ) {
-    const userId = req.user.id || req.user._id;
-    return this.membersService.removeMember(orgId, memberId, userId);
+  @ApiOperation({ summary: 'Remove member from organization' })
+  @ApiParam({ name: 'id', description: 'Organization UUID' })
+  @ApiParam({ name: 'memberId', description: 'Member UUID (User ID)' })
+  @ApiResponse({ status: 200, description: 'Member removed successfully.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized.' })
+  @ApiResponse({ status: 403, description: 'Forbidden. Requires ADMIN role.' })
+  async removeMember(@Param() params: MemberParamsDto, @Req() req: any) {
+    return this.membersService.removeMember(
+      params.id,
+      params.memberId,
+      req.user.uuid,
+    );
   }
 }

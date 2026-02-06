@@ -1,14 +1,18 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { validate } from './config/env.validation';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthModule } from './modules/auth/auth.module';
-import { UsersModule } from './modules/users/users.module';
-import { ProfilesModule } from './modules/profiles/profiles.module';
-import { RedisModule } from './database/redis/redis.module';
-import { OrganizationsModule } from './modules/organizations/organizations.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+import { validate } from '@/src/config/env.validation';
+import { AppController } from '@/src/app.controller';
+import { AppService } from '@/src/app.service';
+import { AuthModule } from '@/src/modules/auth/auth.module';
+import { UsersModule } from '@/src/modules/users/users.module';
+import { ProfilesModule } from '@/src/modules/profiles/profiles.module';
+import { RedisModule } from '@/src/database/redis/redis.module';
+import { OrganizationsModule } from '@/src/modules/organizations/organizations.module';
+import { ExperienceModule } from '@/src/modules/experience/experience.module';
+import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
 import { EventsIndexerModule } from './modules/events-indexer/events-indexer.module';
 
@@ -25,6 +29,19 @@ import { EventsIndexerModule } from './modules/events-indexer/events-indexer.mod
       }),
       inject: [ConfigService],
     }),
+    ServeStaticModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => [
+        {
+          rootPath: join(
+            process.cwd(),
+            configService.get<string>('UPLOAD_DIR', './uploads'),
+          ),
+          serveRoot: '/uploads',
+        },
+      ],
+      inject: [ConfigService],
+    }),
     RedisModule,
     UsersModule,
     ProfilesModule,
@@ -32,6 +49,8 @@ import { EventsIndexerModule } from './modules/events-indexer/events-indexer.mod
     OrganizationsModule,
     HackathonsModule,
     EventsIndexerModule,
+    ExperienceModule,
+    WalletsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

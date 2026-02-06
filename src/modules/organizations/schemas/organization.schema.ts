@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { OrganizationStatus } from '../enums/organization-status.enum';
-import { User } from '../../users/schemas/user.schema';
+import { OrganizationStatus } from '@/src/modules/organizations/enums/organization-status.enum';
+import { User } from '@/src/modules/users/schemas/user.schema';
+import { v4 as uuidv4 } from 'uuid';
 
 export class SocialLinks {
   @Prop()
@@ -22,6 +23,14 @@ export class SocialLinks {
 
 @Schema({ timestamps: true })
 export class Organization extends Document {
+  @Prop({
+    required: true,
+    unique: true,
+    index: true,
+    default: () => uuidv4(),
+  })
+  uuid: string;
+
   @Prop({ required: true, unique: true, index: true })
   name: string;
 

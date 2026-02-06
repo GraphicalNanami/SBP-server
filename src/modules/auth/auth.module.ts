@@ -2,13 +2,13 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { UsersModule } from '../users/users.module';
-import { ProfilesModule } from '../profiles/profiles.module';
-// import { GithubStrategy } from './strategies/github.strategy';
-// import { GoogleStrategy } from './strategies/google.strategy';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { AuthService } from '@/src/modules/auth/auth.service';
+import { AuthController } from '@/src/modules/auth/auth.controller';
+import { UsersModule } from '@/src/modules/users/users.module';
+import { ProfilesModule } from '@/src/modules/profiles/profiles.module';
+// import { GithubStrategy } from '@/src/modules/auth/strategies/github.strategy';
+// import { GoogleStrategy } from '@/src/modules/auth/strategies/google.strategy';
+import { JwtStrategy } from '@/src/modules/auth/strategies/jwt.strategy';
 
 @Module({
   imports: [

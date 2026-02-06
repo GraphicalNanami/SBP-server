@@ -10,7 +10,7 @@ describe('HackathonsService', () => {
   let model: any;
   let membersService: any;
 
-  const mockHackathonModel = function(dto) {
+  const mockHackathonModel = function (dto) {
     this.name = dto.name;
     this.save = jest.fn().mockResolvedValue(this);
   };

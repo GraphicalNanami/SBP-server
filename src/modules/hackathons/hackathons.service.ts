@@ -20,7 +20,10 @@ export class HackathonsService {
     private membersService: MembersService,
   ) {}
 
-  async create(userId: string, createDto: CreateHackathonDto): Promise<Hackathon> {
+  async create(
+    userId: string,
+    createDto: CreateHackathonDto,
+  ): Promise<Hackathon> {
     // Validate user is member of organization
     const member = await this.membersService.getMember(
       createDto.organizationId,
@@ -91,7 +94,9 @@ export class HackathonsService {
     }
 
     if (submissionDeadline <= startTime) {
-      throw new BadRequestException('Submission deadline must be after start time');
+      throw new BadRequestException(
+        'Submission deadline must be after start time',
+      );
     }
 
     if (dto.preRegistrationEndTime) {
