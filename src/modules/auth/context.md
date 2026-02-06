@@ -15,10 +15,11 @@
 ## Invariants
 - Passwords are NEVER returned in API responses
 - Passwords are hashed with bcrypt (10 rounds) before storage
+- JWT Access tokens use `user.uuid` as `sub` claim (migrated from `_id`)
 - Access tokens have a short TTL (15 min)
 - Refresh tokens are opaque, hashed (SHA-256) in Redis, and have a longer TTL (7 days)
 - Raw refresh tokens are never stored in Redis
-- Redis key pattern: `refresh:${sha256(token)}` → `userId`
+- Redis key pattern: `refresh:${sha256(token)}` → `userId` (supports both UUID and ObjectId during migration)
 
 ## Dependencies
 - `UsersModule`: To create and find user records
