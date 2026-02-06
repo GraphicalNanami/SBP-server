@@ -198,13 +198,17 @@ export class HackathonsService {
     }
 
     // Verify user has permission to update
-    const isCreator = hackathon.createdBy.toString() === uId.toString();
+    const createdBy = hackathon.createdBy as any;
+    const creatorId = createdBy._id || createdBy;
+    const isCreator = creatorId.toString() === uId.toString();
     let hasPermission = isCreator;
 
     if (!isCreator) {
       // Check if user is an org admin or editor
+      const organizationId = hackathon.organizationId as any;
+      const orgId = organizationId._id || organizationId;
       const member = await this.membersService.getMember(
-        hackathon.organizationId.toString(),
+        orgId.toString(),
         userId,
       );
       hasPermission =
@@ -220,8 +224,10 @@ export class HackathonsService {
 
     // Check name uniqueness if name is being changed
     if (updateDto.name && updateDto.name !== hackathon.name) {
+      const organizationId = hackathon.organizationId as any;
+      const orgId = organizationId._id || organizationId;
       const existing = await this.hackathonModel.findOne({
-        organizationId: hackathon.organizationId,
+        organizationId: orgId,
         name: updateDto.name,
         _id: { $ne: hackathon._id },
       });

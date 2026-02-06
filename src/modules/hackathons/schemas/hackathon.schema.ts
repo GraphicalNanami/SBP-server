@@ -10,14 +10,14 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Schema({
   toJSON: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
   toObject: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
@@ -63,14 +63,14 @@ export class Placement {
 
 @Schema({
   toJSON: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
   toObject: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
@@ -107,14 +107,14 @@ export class Prize {
 
 @Schema({
   toJSON: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
   toObject: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
@@ -224,14 +224,14 @@ export class StatusHistory {
 @Schema({
   timestamps: true,
   toJSON: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
   toObject: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;

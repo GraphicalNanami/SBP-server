@@ -24,14 +24,14 @@ export class SocialLinks {
 @Schema({
   timestamps: true,
   toJSON: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
     },
   },
   toObject: {
-    transform: (doc, ret) => {
+    transform: (doc, ret: any) => {
       delete ret._id;
       delete ret.__v;
       return ret;
