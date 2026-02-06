@@ -1,0 +1,56 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { MemberRole } from '../enums/member-role.enum';
+import { MemberStatus } from '../enums/member-status.enum';
+import { Organization } from './organization.schema';
+import { User } from '../../users/schemas/user.schema';
+
+@Schema({ timestamps: true })
+export class OrganizationMember extends Document {
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Organization',
+    required: true,
+    index: true,
+  })
+  organizationId: Organization;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true,
+  })
+  userId: User;
+
+  @Prop({
+    type: String,
+    enum: MemberRole,
+    default: MemberRole.VIEWER,
+  })
+  role: MemberRole;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  invitedBy: User;
+
+  @Prop({ default: Date.now })
+  invitedAt: Date;
+
+  @Prop()
+  joinedAt?: Date;
+
+  @Prop({
+    type: String,
+    enum: MemberStatus,
+    default: MemberStatus.PENDING,
+  })
+  status: MemberStatus;
+}
+
+export const OrganizationMemberSchema =
+  SchemaFactory.createForClass(OrganizationMember);
+
+OrganizationMemberSchema.index(
+  { organizationId: 1, userId: 1 },
+  { unique: true },
+);

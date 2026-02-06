@@ -28,6 +28,19 @@ class EnvironmentVariables {
 
   @IsNumber()
   JWT_REFRESH_TTL: number;
+
+
+  @IsString()
+  ORG_TERMS_VERSION: string;
+
+  @IsNumber()
+  ORG_NAME_MIN_LENGTH: number;
+
+  @IsNumber()
+  ORG_NAME_MAX_LENGTH: number;
+
+  @IsNumber()
+  ORG_TAGLINE_MAX_LENGTH: number;
 }
 
 export function validate(config: Record<string, unknown>) {
