@@ -1,35 +1,56 @@
 import {
   Controller,
   Get,
+  Patch,
+  Post,
+  Body,
   UseGuards,
   Req,
-  NotFoundException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ProfilesService } from './profiles.service';
-import { UsersService } from '../users/users.service';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { ProfilesService } from '@/src/modules/profiles/profiles.service';
+import { UpdatePersonalInfoDto } from '@/src/modules/profiles/dto/update-personal-info.dto';
 
 @Controller('profile')
 export class ProfilesController {
-  constructor(
-    private profilesService: ProfilesService,
-    private usersService: UsersService,
-  ) {}
+  constructor(private profilesService: ProfilesService) {}
 
   @Get('me')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: any) {
-    const userId = req.user.userId;
-    const user = await this.usersService.findById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    return this.profilesService.getCompleteProfile(req.user.uuid);
+  }
 
-    const profile = await this.profilesService.findByUserId(userId);
-
+  @Patch('personal-info')
+  @UseGuards(JwtAuthGuard)
+  async updatePersonalInfo(
+    @Req() req: any,
+    @Body() updateDto: UpdatePersonalInfoDto,
+  ) {
+    const profile = await this.profilesService.update(
+      req.user.uuid,
+      updateDto,
+    );
     return {
-      user,
+      message: 'Profile updated successfully',
       profile,
+    };
+  }
+
+  @Post('upload-picture')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadPicture(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    const profilePictureUrl = await this.profilesService.uploadProfilePicture(
+      req.user.uuid,
+      file,
+    );
+    return {
+      message: 'Profile picture uploaded successfully',
+      profilePictureUrl,
     };
   }
 }
