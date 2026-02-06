@@ -1,4 +1,11 @@
-import { IsString, IsIn, IsOptional, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsIn,
+  IsOptional,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 
 export class GetTopicPostsDto {
   @IsString()

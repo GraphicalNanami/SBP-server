@@ -19,9 +19,9 @@ interface PlatformInfo {
   discord?: PlatformData;
 }
 
-@Schema({ 
+@Schema({
   timestamps: true,
-  collection: 'authors'
+  collection: 'authors',
 })
 export class Author {
   @Prop({ required: true })

@@ -12,7 +12,7 @@ export class TopicMatchingService implements OnModuleInit {
   private aliasMap: Map<string, string> = new Map(); // alias -> canonical name
 
   constructor(
-    @InjectModel(Topic.name) private topicModel: Model<TopicDocument>
+    @InjectModel(Topic.name) private topicModel: Model<TopicDocument>,
   ) {}
 
   async onModuleInit() {
@@ -23,9 +23,11 @@ export class TopicMatchingService implements OnModuleInit {
     try {
       // Load topics from database
       const topics = await this.topicModel.find({ is_active: true }).exec();
-      
+
       if (topics.length === 0) {
-        this.logger.warn('No topics found in database, initializing with default crypto terms');
+        this.logger.warn(
+          'No topics found in database, initializing with default crypto terms',
+        );
         await this.initializeDefaultTopics();
         return this.initializeDictionary();
       }
@@ -37,10 +39,10 @@ export class TopicMatchingService implements OnModuleInit {
 
       for (const topic of topics) {
         const canonical = topic.name.toLowerCase().trim();
-        
+
         // Add main topic name
         dictionary.push(canonical);
-        
+
         if (!this.topicMap.has(canonical)) {
           this.topicMap.set(canonical, []);
         }
@@ -57,58 +59,201 @@ export class TopicMatchingService implements OnModuleInit {
 
       // Initialize Aho-Corasick with case-insensitive matching
       this.ahoCorasick = new AhoCorasick(dictionary);
-      
-      this.logger.log(`Initialized topic dictionary with ${dictionary.length} terms from ${topics.length} topics`);
 
+      this.logger.log(
+        `Initialized topic dictionary with ${dictionary.length} terms from ${topics.length} topics`,
+      );
     } catch (error) {
-      this.logger.error(`Error initializing topic dictionary: ${error.message}`);
+      this.logger.error(
+        `Error initializing topic dictionary: ${error.message}`,
+      );
     }
   }
 
   private async initializeDefaultTopics() {
     const defaultTopics = [
       // Core Stellar Terms
-      { name: 'stellar', aliases: ['xlm', 'Stellar', 'XLM', 'stellar lumens', 'Stellar Lumens', 'lumen', 'lumens'], category: 'cryptocurrency' },
-      { name: 'stellar network', aliases: ['stellar blockchain', 'stellar protocol', 'Stellar Network', 'Stellar Blockchain'], category: 'technology' },
-      { name: 'stellar development foundation', aliases: ['SDF', 'Stellar.org', 'stellar foundation', 'Stellar Development Foundation'], category: 'organization' },
-      
+      {
+        name: 'stellar',
+        aliases: [
+          'xlm',
+          'Stellar',
+          'XLM',
+          'stellar lumens',
+          'Stellar Lumens',
+          'lumen',
+          'lumens',
+        ],
+        category: 'cryptocurrency',
+      },
+      {
+        name: 'stellar network',
+        aliases: [
+          'stellar blockchain',
+          'stellar protocol',
+          'Stellar Network',
+          'Stellar Blockchain',
+        ],
+        category: 'technology',
+      },
+      {
+        name: 'stellar development foundation',
+        aliases: [
+          'SDF',
+          'Stellar.org',
+          'stellar foundation',
+          'Stellar Development Foundation',
+        ],
+        category: 'organization',
+      },
+
       // Stellar Technology
-      { name: 'soroban', aliases: ['stellar soroban', 'soroban smart contracts', 'Soroban', 'stellar smart contracts'], category: 'technology' },
-      { name: 'stellar consensus protocol', aliases: ['SCP', 'federated byzantine agreement', 'FBA', 'stellar consensus', 'Stellar Consensus Protocol'], category: 'technology' },
-      { name: 'stellar anchor', aliases: ['anchor', 'anchors', 'asset issuer', 'stellar issuer', 'stellar anchors'], category: 'technology' },
-      { name: 'stellar horizon', aliases: ['horizon api', 'horizon', 'Horizon', 'Stellar Horizon API'], category: 'technology' },
-      { name: 'stellar core', aliases: ['stellar-core', 'Stellar Core'], category: 'technology' },
-      { name: 'stellar laboratory', aliases: ['stellar lab', 'laboratory', 'Stellar Laboratory'], category: 'tool' },
-      
+      {
+        name: 'soroban',
+        aliases: [
+          'stellar soroban',
+          'soroban smart contracts',
+          'Soroban',
+          'stellar smart contracts',
+        ],
+        category: 'technology',
+      },
+      {
+        name: 'stellar consensus protocol',
+        aliases: [
+          'SCP',
+          'federated byzantine agreement',
+          'FBA',
+          'stellar consensus',
+          'Stellar Consensus Protocol',
+        ],
+        category: 'technology',
+      },
+      {
+        name: 'stellar anchor',
+        aliases: [
+          'anchor',
+          'anchors',
+          'asset issuer',
+          'stellar issuer',
+          'stellar anchors',
+        ],
+        category: 'technology',
+      },
+      {
+        name: 'stellar horizon',
+        aliases: ['horizon api', 'horizon', 'Horizon', 'Stellar Horizon API'],
+        category: 'technology',
+      },
+      {
+        name: 'stellar core',
+        aliases: ['stellar-core', 'Stellar Core'],
+        category: 'technology',
+      },
+      {
+        name: 'stellar laboratory',
+        aliases: ['stellar lab', 'laboratory', 'Stellar Laboratory'],
+        category: 'tool',
+      },
+
       // Stellar Ecosystem Projects
-      { name: 'stellar quest', aliases: ['StellarQuest', 'Stellar Quest'], category: 'education' },
-      { name: 'lobstr', aliases: ['LOBSTR', 'lobstr wallet'], category: 'wallet' },
-      { name: 'freighter', aliases: ['Freighter', 'freighter wallet'], category: 'wallet' },
+      {
+        name: 'stellar quest',
+        aliases: ['StellarQuest', 'Stellar Quest'],
+        category: 'education',
+      },
+      {
+        name: 'lobstr',
+        aliases: ['LOBSTR', 'lobstr wallet'],
+        category: 'wallet',
+      },
+      {
+        name: 'freighter',
+        aliases: ['Freighter', 'freighter wallet'],
+        category: 'wallet',
+      },
       { name: 'stellarx', aliases: ['StellarX'], category: 'exchange' },
-      
+
       // Partnerships and Use Cases
-      { name: 'moneygram', aliases: ['MoneyGram', 'money gram'], category: 'partnership' },
-      { name: 'circle', aliases: ['Circle', 'USDC on stellar', 'circle stellar'], category: 'partnership' },
+      {
+        name: 'moneygram',
+        aliases: ['MoneyGram', 'money gram'],
+        category: 'partnership',
+      },
+      {
+        name: 'circle',
+        aliases: ['Circle', 'USDC on stellar', 'circle stellar'],
+        category: 'partnership',
+      },
       { name: 'airtm', aliases: ['AirTM'], category: 'partnership' },
       { name: 'vibrant', aliases: ['Vibrant'], category: 'partnership' },
       { name: 'cowrie', aliases: ['Cowrie'], category: 'partnership' },
-      { name: 'cross border payments', aliases: ['cross-border payments', 'remittances', 'international transfers', 'global payments'], category: 'use_case' },
-      { name: 'financial inclusion', aliases: ['financial inclusion', 'banking the unbanked', 'underbanked'], category: 'use_case' },
-      { name: 'cbdc', aliases: ['CBDC', 'central bank digital currency', 'digital currency'], category: 'use_case' },
-      
+      {
+        name: 'cross border payments',
+        aliases: [
+          'cross-border payments',
+          'remittances',
+          'international transfers',
+          'global payments',
+        ],
+        category: 'use_case',
+      },
+      {
+        name: 'financial inclusion',
+        aliases: ['financial inclusion', 'banking the unbanked', 'underbanked'],
+        category: 'use_case',
+      },
+      {
+        name: 'cbdc',
+        aliases: ['CBDC', 'central bank digital currency', 'digital currency'],
+        category: 'use_case',
+      },
+
       // Key People
-      { name: 'jed mccaleb', aliases: ['Jed McCaleb', 'jed', 'stellar founder'], category: 'person' },
-      { name: 'denelle dixon', aliases: ['Denelle Dixon', 'SDF CEO'], category: 'person' },
-      
+      {
+        name: 'jed mccaleb',
+        aliases: ['Jed McCaleb', 'jed', 'stellar founder'],
+        category: 'person',
+      },
+      {
+        name: 'denelle dixon',
+        aliases: ['Denelle Dixon', 'SDF CEO'],
+        category: 'person',
+      },
+
       // Technical Features
-      { name: 'stellar multisig', aliases: ['multisignature', 'multi-sig', 'stellar multisignature'], category: 'technology' },
-      { name: 'stellar pathfinding', aliases: ['pathfinding', 'path payments', 'stellar paths'], category: 'technology' },
-      { name: 'stellar claimable balances', aliases: ['claimable balance', 'claimable balances'], category: 'technology' },
-      { name: 'stellar sponsored reserves', aliases: ['sponsored reserves', 'account sponsorship'], category: 'technology' },
-      
+      {
+        name: 'stellar multisig',
+        aliases: ['multisignature', 'multi-sig', 'stellar multisignature'],
+        category: 'technology',
+      },
+      {
+        name: 'stellar pathfinding',
+        aliases: ['pathfinding', 'path payments', 'stellar paths'],
+        category: 'technology',
+      },
+      {
+        name: 'stellar claimable balances',
+        aliases: ['claimable balance', 'claimable balances'],
+        category: 'technology',
+      },
+      {
+        name: 'stellar sponsored reserves',
+        aliases: ['sponsored reserves', 'account sponsorship'],
+        category: 'technology',
+      },
+
       // General blockchain (minimal for context)
-      { name: 'blockchain', aliases: ['Blockchain', 'distributed ledger'], category: 'technology' },
-      { name: 'cryptocurrency', aliases: ['crypto', 'digital asset'], category: 'general' }
+      {
+        name: 'blockchain',
+        aliases: ['Blockchain', 'distributed ledger'],
+        category: 'technology',
+      },
+      {
+        name: 'cryptocurrency',
+        aliases: ['crypto', 'digital asset'],
+        category: 'general',
+      },
     ];
 
     for (const topicData of defaultTopics) {
@@ -118,11 +263,13 @@ export class TopicMatchingService implements OnModuleInit {
         type: 'dictionary_match',
         category: topicData.category,
         frequency: 0,
-        is_active: true
+        is_active: true,
       });
     }
 
-    this.logger.log(`Initialized database with ${defaultTopics.length} Stellar-focused topics`);
+    this.logger.log(
+      `Initialized database with ${defaultTopics.length} Stellar-focused topics`,
+    );
   }
 
   async resetAndReloadTopics(): Promise<void> {
@@ -130,14 +277,16 @@ export class TopicMatchingService implements OnModuleInit {
       // Clear all existing topics
       await this.topicModel.deleteMany({});
       this.logger.log('Cleared existing topics from database');
-      
+
       // Reinitialize with new Stellar-focused topics
       await this.initializeDefaultTopics();
-      
+
       // Rebuild the dictionary
       await this.initializeDictionary();
-      
-      this.logger.log('Successfully reset and reloaded topics with Stellar focus');
+
+      this.logger.log(
+        'Successfully reset and reloaded topics with Stellar focus',
+      );
     } catch (error) {
       this.logger.error(`Error resetting topics: ${error.message}`);
       throw error;
@@ -168,19 +317,24 @@ export class TopicMatchingService implements OnModuleInit {
       }
 
       return Array.from(topics);
-
     } catch (error) {
       this.logger.error(`Error matching topics: ${error.message}`);
       return [];
     }
   }
 
-  async addTopic(name: string, aliases: string[] = [], category?: string): Promise<boolean> {
+  async addTopic(
+    name: string,
+    aliases: string[] = [],
+    category?: string,
+  ): Promise<boolean> {
     try {
       const normalizedName = name.toLowerCase().trim();
-      
+
       // Check if topic already exists
-      const existing = await this.topicModel.findOne({ name: normalizedName }).exec();
+      const existing = await this.topicModel
+        .findOne({ name: normalizedName })
+        .exec();
       if (existing) {
         this.logger.warn(`Topic '${normalizedName}' already exists`);
         return false;
@@ -193,27 +347,31 @@ export class TopicMatchingService implements OnModuleInit {
         type: 'dictionary_match',
         category: category,
         frequency: 0,
-        is_active: true
+        is_active: true,
       });
 
       // Reinitialize dictionary to include new topic
       await this.initializeDictionary();
-      
+
       this.logger.log(`Added new topic: ${normalizedName}`);
       return true;
-
     } catch (error) {
       this.logger.error(`Error adding topic: ${error.message}`);
       return false;
     }
   }
 
-  async updateTopicFrequency(topicName: string, increment: number = 1): Promise<void> {
+  async updateTopicFrequency(
+    topicName: string,
+    increment: number = 1,
+  ): Promise<void> {
     try {
-      await this.topicModel.updateOne(
-        { name: topicName.toLowerCase() },
-        { $inc: { frequency: increment } }
-      ).exec();
+      await this.topicModel
+        .updateOne(
+          { name: topicName.toLowerCase() },
+          { $inc: { frequency: increment } },
+        )
+        .exec();
     } catch (error) {
       this.logger.error(`Error updating topic frequency: ${error.message}`);
     }

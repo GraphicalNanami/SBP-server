@@ -29,9 +29,9 @@ interface PlatformSpecificData {
   message_type?: number;
 }
 
-@Schema({ 
+@Schema({
   timestamps: true,
-  collection: 'posts'
+  collection: 'posts',
 })
 export class Post {
   @Prop({ required: true, enum: ['twitter', 'reddit', 'discord'] })

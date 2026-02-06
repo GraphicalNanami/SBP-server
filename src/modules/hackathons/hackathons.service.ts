@@ -251,8 +251,7 @@ export class HackathonsService {
           updateDto.preRegistrationEndTime ||
           hackathon.preRegistrationEndTime?.toISOString(),
         judgingDeadline:
-          updateDto.judgingDeadline ||
-          hackathon.judgingDeadline?.toISOString(),
+          updateDto.judgingDeadline || hackathon.judgingDeadline?.toISOString(),
       };
       this.validateTimeline(timelineData as any);
     }

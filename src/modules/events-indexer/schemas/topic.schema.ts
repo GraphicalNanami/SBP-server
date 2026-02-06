@@ -3,9 +3,9 @@ import { Document } from 'mongoose';
 
 export type TopicDocument = Topic & Document;
 
-@Schema({ 
+@Schema({
   timestamps: true,
-  collection: 'topics'
+  collection: 'topics',
 })
 export class Topic {
   @Prop({ required: true, unique: true, lowercase: true })
@@ -14,9 +14,9 @@ export class Topic {
   @Prop({ type: [String], default: [] })
   aliases: string[];
 
-  @Prop({ 
-    required: true, 
-    enum: ['dictionary_match', 'ner', 'llm_classified'] 
+  @Prop({
+    required: true,
+    enum: ['dictionary_match', 'ner', 'llm_classified'],
   })
   type: 'dictionary_match' | 'ner' | 'llm_classified';
 

@@ -1,15 +1,26 @@
-import { Controller, Get, Post, Query, Param, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Query,
+  Param,
+  ValidationPipe,
+} from '@nestjs/common';
 import { EventsIndexerService } from './services/events-indexer.service';
 import { PostProcessingService } from './services/post-processing.service';
 import { TopicMatchingService } from './services/topic-matching.service';
-import { GetTopicPostsDto, GetRelatedTopicsDto, ProcessPostsDto } from './dto/query.dto';
+import {
+  GetTopicPostsDto,
+  GetRelatedTopicsDto,
+  ProcessPostsDto,
+} from './dto/query.dto';
 
 @Controller('events-indexer')
 export class EventsIndexerController {
   constructor(
     private eventsIndexerService: EventsIndexerService,
     private postProcessingService: PostProcessingService,
-    private topicMatchingService: TopicMatchingService
+    private topicMatchingService: TopicMatchingService,
   ) {}
 
   @Post('index/run')
@@ -18,7 +29,7 @@ export class EventsIndexerController {
       return await this.eventsIndexerService.runSingleIndexCycle({
         twitterQuery: dto.query,
         redditQuery: dto.query,
-        maxResults: dto.limit
+        maxResults: dto.limit,
       });
     } catch (error) {
       return {
@@ -27,7 +38,7 @@ export class EventsIndexerController {
         total_processed: 0,
         error: true,
         error_message: error.message,
-        note: 'Check API configuration in /events-indexer/health'
+        note: 'Check API configuration in /events-indexer/health',
       };
     }
   }
@@ -40,52 +51,61 @@ export class EventsIndexerController {
   @Post('index/reddit/:subreddit')
   async indexReddit(
     @Param('subreddit') subreddit: string,
-    @Query(ValidationPipe) dto: ProcessPostsDto
+    @Query(ValidationPipe) dto: ProcessPostsDto,
   ) {
-    return this.eventsIndexerService.indexRedditPosts(subreddit, dto.query, dto.limit);
+    return this.eventsIndexerService.indexRedditPosts(
+      subreddit,
+      dto.query,
+      dto.limit,
+    );
   }
 
   @Get('topics/:topic/posts')
   async getTopicPosts(
     @Param('topic') topic: string,
-    @Query(ValidationPipe) dto: GetTopicPostsDto
+    @Query(ValidationPipe) dto: GetTopicPostsDto,
   ) {
     const posts = await this.postProcessingService.getTopicPosts(topic, {
       limit: dto.limit,
       hours: dto.hours,
-      platform: dto.platform
+      platform: dto.platform,
     });
 
     return {
       topic,
       count: posts.length,
-      posts: posts.map(post => ({
+      posts: posts.map((post) => ({
         id: post._id,
         platform: post.platform,
-        content: post.content.substring(0, 280) + (post.content.length > 280 ? '...' : ''),
+        content:
+          post.content.substring(0, 280) +
+          (post.content.length > 280 ? '...' : ''),
         author_name: post.author_name,
         created_at: post.created_at,
         url: post.url,
         topics: post.topics,
-        entities: post.extracted_entities
-      }))
+        entities: post.extracted_entities,
+      })),
     };
   }
 
   @Get('topics/:topic/related')
   async getRelatedTopics(
     @Param('topic') topic: string,
-    @Query(ValidationPipe) dto: GetRelatedTopicsDto
+    @Query(ValidationPipe) dto: GetRelatedTopicsDto,
   ) {
-    const relatedTopics = await this.postProcessingService.getCoOccurringTopics(topic, {
-      limit: dto.limit,
-      hours: dto.hours
-    });
+    const relatedTopics = await this.postProcessingService.getCoOccurringTopics(
+      topic,
+      {
+        limit: dto.limit,
+        hours: dto.hours,
+      },
+    );
 
     return {
       topic,
       related_topics: relatedTopics,
-      time_window_hours: dto.hours
+      time_window_hours: dto.hours,
     };
   }
 
@@ -93,35 +113,38 @@ export class EventsIndexerController {
   async getTopTopics(@Query('limit') limitStr?: string) {
     const limit = limitStr ? parseInt(limitStr, 10) : 50;
     const topics = await this.topicMatchingService.getTopTopics(limit);
-    
+
     return {
-      topics: topics.map(topic => ({
+      topics: topics.map((topic) => ({
         name: topic.name,
         category: topic.category,
         frequency: topic.frequency,
-        aliases: topic.aliases
-      }))
+        aliases: topic.aliases,
+      })),
     };
   }
 
   @Get('topics/categories/:category')
   async getTopicsByCategory(@Param('category') category: string) {
-    const topics = await this.topicMatchingService.getTopicsByCategory(category);
-    
+    const topics =
+      await this.topicMatchingService.getTopicsByCategory(category);
+
     return {
       category,
-      topics: topics.map(topic => ({
+      topics: topics.map((topic) => ({
         name: topic.name,
         frequency: topic.frequency,
-        aliases: topic.aliases
-      }))
+        aliases: topic.aliases,
+      })),
     };
   }
 
   @Get('authors/:id/stats')
   async getAuthorStats(@Param('id') authorId: string) {
     try {
-      const stats = await this.postProcessingService.getAuthorStats(authorId as any);
+      const stats = await this.postProcessingService.getAuthorStats(
+        authorId as any,
+      );
       if (!stats) {
         return { error: 'Author not found' };
       }
@@ -132,14 +155,20 @@ export class EventsIndexerController {
   }
 
   @Get('authors')
-  async getAuthors(@Query('limit') limitStr?: string, @Query('platform') platform?: 'twitter' | 'reddit' | 'discord') {
+  async getAuthors(
+    @Query('limit') limitStr?: string,
+    @Query('platform') platform?: 'twitter' | 'reddit' | 'discord',
+  ) {
     const limit = limitStr ? parseInt(limitStr, 10) : 50;
-    const authors = await this.postProcessingService.getAuthors({ limit, platform });
+    const authors = await this.postProcessingService.getAuthors({
+      limit,
+      platform,
+    });
 
     return {
       count: authors.length,
       platform: platform || 'all',
-      authors: authors.map(author => ({
+      authors: authors.map((author) => ({
         id: author.id,
         username: author.username,
         display_name: author.display_name,
@@ -148,8 +177,8 @@ export class EventsIndexerController {
         verified: author.verified,
         post_count: author.post_count,
         first_seen: author.first_seen,
-        last_active: author.last_active
-      }))
+        last_active: author.last_active,
+      })),
     };
   }
 
@@ -162,32 +191,37 @@ export class EventsIndexerController {
   @Get('posts/recent')
   async getRecentPosts(
     @Query('hours') hoursStr?: string,
-    @Query('platform') platform?: 'twitter' | 'reddit' | 'discord'
+    @Query('platform') platform?: 'twitter' | 'reddit' | 'discord',
   ) {
     const hours = hoursStr ? parseInt(hoursStr, 10) : 24;
-    const posts = await this.postProcessingService.getRecentPosts(hours, platform);
+    const posts = await this.postProcessingService.getRecentPosts(
+      hours,
+      platform,
+    );
 
     return {
       count: posts.length,
       time_window_hours: hours,
       platform: platform || 'all',
-      posts: posts.map(post => ({
+      posts: posts.map((post) => ({
         id: post._id,
         platform: post.platform,
-        content: post.content.substring(0, 200) + (post.content.length > 200 ? '...' : ''),
+        content:
+          post.content.substring(0, 200) +
+          (post.content.length > 200 ? '...' : ''),
         author_name: post.author_name,
         created_at: post.created_at,
         url: post.url,
         topics: post.topics.slice(0, 5), // Limit to top 5 topics
-        entity_count: post.extracted_entities.length
-      }))
+        entity_count: post.extracted_entities.length,
+      })),
     };
   }
 
   @Post('topics/:topic/match')
   async matchTopicInText(
     @Param('topic') topic: string,
-    @Query('text') text: string
+    @Query('text') text: string,
   ) {
     if (!text) {
       return { error: 'Text parameter required' };
@@ -200,7 +234,7 @@ export class EventsIndexerController {
       topic,
       text_snippet: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
       is_match: isMatch,
-      all_matches: matches
+      all_matches: matches,
     };
   }
 
@@ -219,34 +253,37 @@ export class EventsIndexerController {
       {
         id: 'demo_twitter_1',
         platform: 'twitter',
-        content: 'Stellar Lumens (XLM) is revolutionizing cross-border payments with its lightning-fast settlement times and minimal fees.',
+        content:
+          'Stellar Lumens (XLM) is revolutionizing cross-border payments with its lightning-fast settlement times and minimal fees.',
         author_name: 'CryptoAnalyst',
         created_at: new Date(),
       },
       {
-        id: 'demo_reddit_1', 
+        id: 'demo_reddit_1',
         platform: 'reddit',
-        content: 'Just read about Stellar blockchain technology - their consensus algorithm is fascinating. Instead of mining like Bitcoin, they use something called the Stellar Consensus Protocol (SCP).',
+        content:
+          'Just read about Stellar blockchain technology - their consensus algorithm is fascinating. Instead of mining like Bitcoin, they use something called the Stellar Consensus Protocol (SCP).',
         author_name: 'BlockchainDev',
         created_at: new Date(),
       },
       {
         id: 'demo_twitter_2',
-        platform: 'twitter', 
-        content: 'The Stellar Development Foundation announced new partnerships with major financial institutions for cross-border remittances using XLM.',
+        platform: 'twitter',
+        content:
+          'The Stellar Development Foundation announced new partnerships with major financial institutions for cross-border remittances using XLM.',
         author_name: 'FinTechNews',
         created_at: new Date(),
-      }
+      },
     ];
 
     // Process with our topic matching service
-    const results = demoStellarPosts.map(post => {
+    const results = demoStellarPosts.map((post) => {
       const topics = this.topicMatchingService.matchTopics(post.content);
       return {
         ...post,
         topics: topics,
         content_length: post.content.length,
-        passes_min_length: post.content.length >= 80
+        passes_min_length: post.content.length >= 80,
       };
     });
 
@@ -254,12 +291,12 @@ export class EventsIndexerController {
       demo_mode: true,
       total_posts: demoStellarPosts.length,
       processed_posts: results,
-      topic_extraction_demo: results.map(r => ({
+      topic_extraction_demo: results.map((r) => ({
         platform: r.platform,
         content_preview: r.content.substring(0, 100) + '...',
         topics_found: r.topics,
-        meets_length_requirement: r.passes_min_length
-      }))
+        meets_length_requirement: r.passes_min_length,
+      })),
     };
   }
 
@@ -270,12 +307,13 @@ export class EventsIndexerController {
       await this.topicMatchingService.resetAndReloadTopics();
       return {
         success: true,
-        message: 'Topics database reset and reloaded with Stellar-focused terms'
+        message:
+          'Topics database reset and reloaded with Stellar-focused terms',
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -289,28 +327,40 @@ export class EventsIndexerController {
         database: 'connected',
         topic_matching: 'initialized',
         apis: {
-          twitter: process.env.TWITTER_BEARER_TOKEN ? 'configured' : 'not_configured',
-          reddit: process.env.REDDIT_CLIENT_ID ? 'configured' : 'not_configured',
-          together_ai: process.env.TOGETHER_API_KEY ? 'configured' : 'not_configured'
-        }
+          twitter: process.env.TWITTER_BEARER_TOKEN
+            ? 'configured'
+            : 'not_configured',
+          reddit: process.env.REDDIT_CLIENT_ID
+            ? 'configured'
+            : 'not_configured',
+          together_ai: process.env.TOGETHER_API_KEY
+            ? 'configured'
+            : 'not_configured',
+        },
       },
       setup_instructions: {
         reddit: {
           url: 'https://www.reddit.com/prefs/apps',
-          steps: '1. Click "Create App", 2. Choose "script", 3. Get Client ID & Secret',
-          env_vars: ['REDDIT_CLIENT_ID', 'REDDIT_CLIENT_SECRET', 'REDDIT_USERNAME', 'REDDIT_PASSWORD']
+          steps:
+            '1. Click "Create App", 2. Choose "script", 3. Get Client ID & Secret',
+          env_vars: [
+            'REDDIT_CLIENT_ID',
+            'REDDIT_CLIENT_SECRET',
+            'REDDIT_USERNAME',
+            'REDDIT_PASSWORD',
+          ],
         },
         twitter: {
           url: 'https://developer.x.com/en/portal/dashboard',
           steps: 'Create project, get Bearer Token',
-          env_vars: ['TWITTER_BEARER_TOKEN']
+          env_vars: ['TWITTER_BEARER_TOKEN'],
         },
         together_ai: {
           url: 'https://together.ai',
           steps: 'Sign up, get API key',
-          env_vars: ['TOGETHER_API_KEY']
-        }
-      }
+          env_vars: ['TOGETHER_API_KEY'],
+        },
+      },
     };
   }
 }

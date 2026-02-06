@@ -38,44 +38,64 @@ export class RedditService {
   private readonly username: string;
   private readonly password: string;
   private readonly userAgent = 'script:sbp-event-indexer:v1.0 (by /u/yourname)';
-  
+
   private accessToken?: string;
   private tokenExpiry?: number;
-  
+
   constructor(private configService: ConfigService) {
     this.clientId = this.configService.get<string>('REDDIT_CLIENT_ID') || '';
-    this.clientSecret = this.configService.get<string>('REDDIT_CLIENT_SECRET') || '';
+    this.clientSecret =
+      this.configService.get<string>('REDDIT_CLIENT_SECRET') || '';
     this.username = this.configService.get<string>('REDDIT_USERNAME') || '';
     this.password = this.configService.get<string>('REDDIT_PASSWORD') || '';
 
-    if (!this.clientId || !this.clientSecret || !this.username || !this.password) {
+    if (
+      !this.clientId ||
+      !this.clientSecret ||
+      !this.username ||
+      !this.password
+    ) {
       this.logger.warn('Reddit credentials not fully configured');
     }
   }
 
   private async getAccessToken(): Promise<string | null> {
     // Check if token is still valid (with 5 min buffer)
-    if (this.accessToken && this.tokenExpiry && Date.now() < this.tokenExpiry - 300000) {
+    if (
+      this.accessToken &&
+      this.tokenExpiry &&
+      Date.now() < this.tokenExpiry - 300000
+    ) {
       return this.accessToken;
     }
 
-    if (!this.clientId || !this.clientSecret || !this.username || !this.password) {
+    if (
+      !this.clientId ||
+      !this.clientSecret ||
+      !this.username ||
+      !this.password
+    ) {
       this.logger.error('Reddit credentials not configured');
       return null;
     }
 
     try {
-      const credentials = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
-      
-      const response = await fetch('https://www.reddit.com/api/v1/access_token', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${credentials}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': this.userAgent
+      const credentials = Buffer.from(
+        `${this.clientId}:${this.clientSecret}`,
+      ).toString('base64');
+
+      const response = await fetch(
+        'https://www.reddit.com/api/v1/access_token',
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${credentials}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': this.userAgent,
+          },
+          body: `grant_type=password&username=${this.username}&password=${this.password}`,
         },
-        body: `grant_type=password&username=${this.username}&password=${this.password}`
-      });
+      );
 
       if (!response.ok) {
         this.logger.error(`Reddit auth failed: ${response.status}`);
@@ -84,11 +104,10 @@ export class RedditService {
 
       const data = await response.json();
       this.accessToken = data.access_token;
-      this.tokenExpiry = Date.now() + (data.expires_in * 1000);
-      
+      this.tokenExpiry = Date.now() + data.expires_in * 1000;
+
       this.logger.log('Reddit access token refreshed');
       return this.accessToken || null;
-
     } catch (error) {
       this.logger.error(`Reddit authentication error: ${error.message}`);
       return null;
@@ -96,24 +115,26 @@ export class RedditService {
   }
 
   async searchSubreddit(
-    subreddit: string, 
-    query: string, 
+    subreddit: string,
+    query: string,
     limit: number = 100,
     sort: 'relevance' | 'hot' | 'top' | 'new' | 'comments' = 'new',
-    timeFilter: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'day'
-  ): Promise<Array<{
-    id: string;
-    title: string;
-    content: string;
-    author_id: string;
-    author_username: string;
-    author_name: string;
-    created_at: Date;
-    url: string;
-    subreddit: string;
-    score: number;
-    raw_data: any;
-  }>> {
+    timeFilter: 'hour' | 'day' | 'week' | 'month' | 'year' | 'all' = 'day',
+  ): Promise<
+    Array<{
+      id: string;
+      title: string;
+      content: string;
+      author_id: string;
+      author_username: string;
+      author_name: string;
+      created_at: Date;
+      url: string;
+      subreddit: string;
+      score: number;
+      raw_data: any;
+    }>
+  > {
     const token = await this.getAccessToken();
     if (!token) {
       return [];
@@ -126,17 +147,17 @@ export class RedditService {
         sort,
         t: timeFilter,
         limit: Math.min(limit, 100).toString(),
-        type: 'link'
+        type: 'link',
       });
 
       const response = await fetch(
         `https://oauth.reddit.com/r/${subreddit}/search?${params}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'User-Agent': this.userAgent
-          }
-        }
+            Authorization: `Bearer ${token}`,
+            'User-Agent': this.userAgent,
+          },
+        },
       );
 
       if (!response.ok) {
@@ -145,8 +166,8 @@ export class RedditService {
       }
 
       const listing: RedditListing = await response.json();
-      
-      const posts = listing.data.children.map(child => {
+
+      const posts = listing.data.children.map((child) => {
         const post = child.data;
         return {
           id: post.id,
@@ -166,14 +187,13 @@ export class RedditService {
             permalink: post.permalink,
             is_self: post.is_self,
             domain: post.domain,
-            thumbnail: post.thumbnail
-          }
+            thumbnail: post.thumbnail,
+          },
         };
       });
 
       this.logger.log(`Fetched ${posts.length} posts from r/${subreddit}`);
       return posts;
-
     } catch (error) {
       this.logger.error(`Error fetching from Reddit: ${error.message}`);
       return [];
@@ -181,21 +201,23 @@ export class RedditService {
   }
 
   async getNewPosts(
-    subreddit: string, 
-    limit: number = 100
-  ): Promise<Array<{
-    id: string;
-    title: string;
-    content: string;
-    author_id: string;
-    author_username: string;
-    author_name: string;
-    created_at: Date;
-    url: string;
-    subreddit: string;
-    score: number;
-    raw_data: any;
-  }>> {
+    subreddit: string,
+    limit: number = 100,
+  ): Promise<
+    Array<{
+      id: string;
+      title: string;
+      content: string;
+      author_id: string;
+      author_username: string;
+      author_name: string;
+      created_at: Date;
+      url: string;
+      subreddit: string;
+      score: number;
+      raw_data: any;
+    }>
+  > {
     const token = await this.getAccessToken();
     if (!token) {
       return [];
@@ -206,10 +228,10 @@ export class RedditService {
         `https://oauth.reddit.com/r/${subreddit}/new?limit=${Math.min(limit, 100)}`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'User-Agent': this.userAgent
-          }
-        }
+            Authorization: `Bearer ${token}`,
+            'User-Agent': this.userAgent,
+          },
+        },
       );
 
       if (!response.ok) {
@@ -218,8 +240,8 @@ export class RedditService {
       }
 
       const listing: RedditListing = await response.json();
-      
-      const posts = listing.data.children.map(child => {
+
+      const posts = listing.data.children.map((child) => {
         const post = child.data;
         return {
           id: post.id,
@@ -239,16 +261,17 @@ export class RedditService {
             permalink: post.permalink,
             is_self: post.is_self,
             domain: post.domain,
-            thumbnail: post.thumbnail
-          }
+            thumbnail: post.thumbnail,
+          },
         };
       });
 
       this.logger.log(`Fetched ${posts.length} new posts from r/${subreddit}`);
       return posts;
-
     } catch (error) {
-      this.logger.error(`Error fetching new posts from Reddit: ${error.message}`);
+      this.logger.error(
+        `Error fetching new posts from Reddit: ${error.message}`,
+      );
       return [];
     }
   }
@@ -264,10 +287,10 @@ export class RedditService {
         `https://oauth.reddit.com/user/${username}/about`,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
-            'User-Agent': this.userAgent
-          }
-        }
+            Authorization: `Bearer ${token}`,
+            'User-Agent': this.userAgent,
+          },
+        },
       );
 
       if (!response.ok) {
@@ -276,7 +299,6 @@ export class RedditService {
 
       const data = await response.json();
       return data.data;
-
     } catch (error) {
       this.logger.error(`Error fetching Reddit user: ${error.message}`);
       return null;

@@ -15,7 +15,12 @@ interface TwitterPost {
   entities?: {
     hashtags?: Array<{ start: number; end: number; tag: string }>;
     mentions?: Array<{ start: number; end: number; username: string }>;
-    urls?: Array<{ start: number; end: number; url: string; expanded_url: string }>;
+    urls?: Array<{
+      start: number;
+      end: number;
+      url: string;
+      expanded_url: string;
+    }>;
   };
   lang?: string;
   conversation_id?: string;
@@ -56,13 +61,18 @@ export class TwitterService {
   private readonly baseUrl = 'https://api.x.com/2';
 
   constructor(private configService: ConfigService) {
-    this.bearerToken = this.configService.get<string>('TWITTER_BEARER_TOKEN') || '';
+    this.bearerToken =
+      this.configService.get<string>('TWITTER_BEARER_TOKEN') || '';
     if (!this.bearerToken) {
       this.logger.warn('TWITTER_BEARER_TOKEN not configured');
     }
   }
 
-  async searchRecentPosts(query: string, maxResults: number = 100, sinceId?: string): Promise<{
+  async searchRecentPosts(
+    query: string,
+    maxResults: number = 100,
+    sinceId?: string,
+  ): Promise<{
     posts: Array<{
       id: string;
       text: string;
@@ -74,7 +84,7 @@ export class TwitterService {
       metrics: any;
       raw_data: any;
     }>;
-    meta: { newest_id: string; oldest_id: string; };
+    meta: { newest_id: string; oldest_id: string };
   }> {
     if (!this.bearerToken) {
       this.logger.error('Twitter Bearer Token not configured');
@@ -83,30 +93,36 @@ export class TwitterService {
 
     try {
       // Build Stellar-focused query with proper Twitter syntax
-      const stellarQuery = query ? `(${query}) lang:en -is:retweet -is:reply` : 
-        '(stellar OR "stellar lumens" OR xlm OR soroban OR "stellar network") lang:en -is:retweet -is:reply';
-      
+      const stellarQuery = query
+        ? `(${query}) lang:en -is:retweet -is:reply`
+        : '(stellar OR "stellar lumens" OR xlm OR soroban OR "stellar network") lang:en -is:retweet -is:reply';
+
       this.logger.log(`Searching Twitter with query: ${stellarQuery}`);
-      
+
       const params = new URLSearchParams({
         query: stellarQuery,
         max_results: Math.min(maxResults, 100).toString(),
         sort_order: 'recency',
-        'tweet.fields': 'id,text,created_at,author_id,public_metrics,entities,lang,conversation_id',
+        'tweet.fields':
+          'id,text,created_at,author_id,public_metrics,entities,lang,conversation_id',
         expansions: 'author_id',
-        'user.fields': 'id,username,name,profile_image_url,public_metrics,verified_type'
+        'user.fields':
+          'id,username,name,profile_image_url,public_metrics,verified_type',
       });
 
       if (sinceId) {
         params.set('since_id', sinceId);
       }
 
-      const response = await fetch(`${this.baseUrl}/tweets/search/recent?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${this.bearerToken}`,
-          'User-Agent': 'SBP-EventIndexer/1.0'
-        }
-      });
+      const response = await fetch(
+        `${this.baseUrl}/tweets/search/recent?${params}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.bearerToken}`,
+            'User-Agent': 'SBP-EventIndexer/1.0',
+          },
+        },
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -119,11 +135,11 @@ export class TwitterService {
       // Create user map for quick lookups
       const userMap = new Map<string, TwitterUser>();
       if (data.includes?.users) {
-        data.includes.users.forEach(user => userMap.set(user.id, user));
+        data.includes.users.forEach((user) => userMap.set(user.id, user));
       }
 
       // Transform posts to our format
-      const posts = (data.data || []).map(post => {
+      const posts = (data.data || []).map((post) => {
         const user = userMap.get(post.author_id);
         return {
           id: post.id,
@@ -138,21 +154,20 @@ export class TwitterService {
             public_metrics: post.public_metrics,
             entities: post.entities,
             lang: post.lang,
-            conversation_id: post.conversation_id
-          }
+            conversation_id: post.conversation_id,
+          },
         };
       });
 
       this.logger.log(`Fetched ${posts.length} posts from Twitter`);
-      
+
       return {
         posts,
         meta: {
           newest_id: data.meta.newest_id,
-          oldest_id: data.meta.oldest_id
-        }
+          oldest_id: data.meta.oldest_id,
+        },
       };
-
     } catch (error) {
       this.logger.error(`Error fetching from Twitter: ${error.message}`);
       return { posts: [], meta: { newest_id: '', oldest_id: '' } };
@@ -165,12 +180,15 @@ export class TwitterService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/users/${userId}?user.fields=id,username,name,profile_image_url,public_metrics,verified_type`, {
-        headers: {
-          'Authorization': `Bearer ${this.bearerToken}`,
-          'User-Agent': 'SBP-EventIndexer/1.0'
-        }
-      });
+      const response = await fetch(
+        `${this.baseUrl}/users/${userId}?user.fields=id,username,name,profile_image_url,public_metrics,verified_type`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.bearerToken}`,
+            'User-Agent': 'SBP-EventIndexer/1.0',
+          },
+        },
+      );
 
       if (!response.ok) {
         return null;
@@ -178,7 +196,6 @@ export class TwitterService {
 
       const data = await response.json();
       return data.data;
-
     } catch (error) {
       this.logger.error(`Error fetching Twitter user: ${error.message}`);
       return null;
