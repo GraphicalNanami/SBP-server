@@ -14,6 +14,7 @@ import { OrganizationsModule } from '@/src/modules/organizations/organizations.m
 import { ExperienceModule } from '@/src/modules/experience/experience.module';
 import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
+import { EventsIndexerModule } from './modules/events-indexer/events-indexer.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { HackathonsModule } from './modules/hackathons/hackathons.module';
     AuthModule,
     OrganizationsModule,
     HackathonsModule,
+    EventsIndexerModule,
     ExperienceModule,
     WalletsModule,
   ],

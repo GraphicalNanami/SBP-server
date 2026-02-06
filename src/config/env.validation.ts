@@ -1,5 +1,5 @@
 import { plainToInstance } from 'class-transformer';
-import { IsEnum, IsNumber, IsString, validateSync } from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, validateSync } from 'class-validator';
 
 enum Environment {
   Development = 'development',
@@ -32,6 +32,7 @@ class EnvironmentVariables {
   @IsNumber()
   BCRYPT_ROUNDS: number;
 
+  @IsOptional()
   @IsString()
   ORG_TERMS_VERSION: string;
 
@@ -44,6 +45,7 @@ class EnvironmentVariables {
   @IsNumber()
   ORG_TAGLINE_MAX_LENGTH: number;
 
+  @IsOptional()
   @IsString()
   UPLOAD_DIR: string;
 
