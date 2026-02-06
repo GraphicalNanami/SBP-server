@@ -336,3 +336,8 @@ Our package  wil be mantained by the bun intrinsically
 ## Rule of build 
 
 Anyone is not allowed to run build .
+
+## Rule of paths
+
+PAths shall now look like ../../../service 
+but shall look like @/src/module/service for clear readability This will enhance our code readability a lot.

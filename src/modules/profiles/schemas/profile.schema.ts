@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Gender } from '@/common/enums/gender.enum';
 
 @Schema({ timestamps: true })
 export class Profile extends Document {
@@ -11,6 +12,27 @@ export class Profile extends Document {
     index: true,
   })
   userId: Types.ObjectId;
+
+  @Prop()
+  firstName: string;
+
+  @Prop()
+  lastName: string;
+
+  @Prop({ type: String, enum: Gender })
+  gender: Gender;
+
+  @Prop()
+  city: string;
+
+  @Prop()
+  country: string;
+
+  @Prop()
+  website: string;
+
+  @Prop()
+  profilePictureUrl: string;
 
   @Prop()
   bio: string;

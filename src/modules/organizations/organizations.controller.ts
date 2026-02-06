@@ -8,14 +8,14 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { OrganizationsService } from './organizations.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationProfileDto } from './dto/update-organization-profile.dto';
-import { UpdateSocialLinksDto } from './dto/update-social-links.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { OrganizationRoleGuard } from './guards/organization-role.guard';
-import { RequireRole } from './decorators/require-role.decorator';
-import { MemberRole } from './enums/member-role.enum';
+import { OrganizationsService } from '@/modules/organizations/organizations.service';
+import { CreateOrganizationDto } from '@/modules/organizations/dto/create-organization.dto';
+import { UpdateOrganizationProfileDto } from '@/modules/organizations/dto/update-organization-profile.dto';
+import { UpdateSocialLinksDto } from '@/modules/organizations/dto/update-social-links.dto';
+import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { OrganizationRoleGuard } from '@/modules/organizations/guards/organization-role.guard';
+import { RequireRole } from '@/modules/organizations/decorators/require-role.decorator';
+import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
 
 @Controller('organizations')
 @UseGuards(JwtAuthGuard)

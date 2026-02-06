@@ -30,24 +30,6 @@ class EnvironmentVariables {
   JWT_REFRESH_TTL: number;
 
   @IsString()
-  GITHUB_CLIENT_ID: string;
-
-  @IsString()
-  GITHUB_CLIENT_SECRET: string;
-
-  @IsString()
-  GITHUB_CALLBACK_URL: string;
-
-  @IsString()
-  GOOGLE_CLIENT_ID: string;
-
-  @IsString()
-  GOOGLE_CLIENT_SECRET: string;
-
-  @IsString()
-  GOOGLE_CALLBACK_URL: string;
-
-  @IsString()
   ORG_TERMS_VERSION: string;
 
   @IsNumber()
@@ -58,6 +40,24 @@ class EnvironmentVariables {
 
   @IsNumber()
   ORG_TAGLINE_MAX_LENGTH: number;
+
+  @IsString()
+  UPLOAD_DIR: string;
+
+  @IsNumber()
+  MAX_FILE_SIZE: number;
+
+  @IsString()
+  ALLOWED_IMAGE_TYPES: string;
+
+  @IsString()
+  STELLAR_NETWORK: string;
+
+  @IsString()
+  STELLAR_HORIZON_URL: string;
+
+  @IsNumber()
+  UPLOAD_RATE_LIMIT: number;
 }
 
 export function validate(config: Record<string, unknown>) {
