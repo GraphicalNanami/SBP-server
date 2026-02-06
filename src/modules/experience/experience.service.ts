@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Experience } from '@/modules/experience/schemas/experience.schema';
-import { CreateExperienceDto, UpdateExperienceDto } from '@/modules/experience/dto/experience.dto';
+import { Experience } from '@/src/modules/experience/schemas/experience.schema';
+import { CreateExperienceDto, UpdateExperienceDto } from '@/src/modules/experience/dto/experience.dto';
+import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
 
 @Injectable()
 export class ExperienceService {
+  private readonly logger = new Logger(ExperienceService.name);
+
   constructor(
     @InjectModel(Experience.name) private experienceModel: Model<Experience>,
   ) {}
@@ -15,6 +18,7 @@ export class ExperienceService {
     return this.experienceModel.findOne({ userId: id }).exec();
   }
 
+  @LogInteraction()
   async upsert(userId: string, data: CreateExperienceDto): Promise<Experience> {
     return this.experienceModel
       .findOneAndUpdate(
@@ -25,8 +29,8 @@ export class ExperienceService {
       .exec();
   }
 
+  @LogInteraction()
   async update(userId: string, data: UpdateExperienceDto): Promise<Experience> {
-    const experience = await this.findByUserId(userId);
     const updateQuery: any = {};
     const addToSet: any = {};
     const pull: any = {};
@@ -55,3 +59,4 @@ export class ExperienceService {
       .exec();
   }
 }
+

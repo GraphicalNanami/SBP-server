@@ -7,14 +7,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import slugify from 'slugify';
-import { Organization } from '@/modules/organizations/schemas/organization.schema';
-import { OrganizationMember } from '@/modules/organizations/schemas/organization-member.schema';
-import { CreateOrganizationDto } from '@/modules/organizations/dto/create-organization.dto';
-import { UpdateOrganizationProfileDto } from '@/modules/organizations/dto/update-organization-profile.dto';
-import { UpdateSocialLinksDto } from '@/modules/organizations/dto/update-social-links.dto';
-import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
-import { MemberStatus } from '@/modules/organizations/enums/member-status.enum';
-import { OrganizationStatus } from '@/modules/organizations/enums/organization-status.enum';
+import { Organization } from '@/src/modules/organizations/schemas/organization.schema';
+import { OrganizationMember } from '@/src/modules/organizations/schemas/organization-member.schema';
+import { CreateOrganizationDto } from '@/src/modules/organizations/dto/create-organization.dto';
+import { UpdateOrganizationProfileDto } from '@/src/modules/organizations/dto/update-organization-profile.dto';
+import { UpdateSocialLinksDto } from '@/src/modules/organizations/dto/update-social-links.dto';
+import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
+import { MemberStatus } from '@/src/modules/organizations/enums/member-status.enum';
+import { OrganizationStatus } from '@/src/modules/organizations/enums/organization-status.enum';
 
 @Injectable()
 export class OrganizationsService {

@@ -9,9 +9,9 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { WalletsService } from '@/modules/wallets/wallets.service';
-import { AddWalletDto, VerifyWalletDto, UpdateWalletDto } from '@/modules/wallets/dto/wallet.dto';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { WalletsService } from '@/src/modules/wallets/wallets.service';
+import { AddWalletDto, VerifyWalletDto, UpdateWalletDto } from '@/src/modules/wallets/dto/wallet.dto';
 
 @Controller('wallets')
 export class WalletsController {
@@ -20,13 +20,13 @@ export class WalletsController {
   @Get()
   @UseGuards(JwtAuthGuard)
   async getMyWallets(@Req() req: any) {
-    return this.walletsService.findByUserId(req.user.userId);
+    return this.walletsService.findByUserId(req.user._id);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
   async addWallet(@Req() req: any, @Body() data: AddWalletDto) {
-    return this.walletsService.addWallet(req.user.userId, data);
+    return this.walletsService.addWallet(req.user._id, data);
   }
 
   @Post(':id/verify')
@@ -37,7 +37,7 @@ export class WalletsController {
     @Body() data: VerifyWalletDto,
   ) {
     return this.walletsService.verifyWallet(
-      req.user.userId,
+      req.user._id,
       walletId,
       data.signature,
       data.challenge,
@@ -51,19 +51,19 @@ export class WalletsController {
     @Param('id') walletId: string,
     @Body() data: UpdateWalletDto,
   ) {
-    return this.walletsService.updateWallet(req.user.userId, walletId, data);
+    return this.walletsService.updateWallet(req.user._id, walletId, data);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   async removeWallet(@Req() req: any, @Param('id') walletId: string) {
-    await this.walletsService.removeWallet(req.user.userId, walletId);
+    await this.walletsService.removeWallet(req.user._id, walletId);
     return { message: 'Wallet removed successfully' };
   }
 
   @Post(':id/set-primary')
   @UseGuards(JwtAuthGuard)
   async setPrimary(@Req() req: any, @Param('id') walletId: string) {
-    return this.walletsService.setPrimary(req.user.userId, walletId);
+    return this.walletsService.setPrimary(req.user._id, walletId);
   }
 }

@@ -29,6 +29,9 @@ class EnvironmentVariables {
   @IsNumber()
   JWT_REFRESH_TTL: number;
 
+  @IsNumber()
+  BCRYPT_ROUNDS: number;
+
   @IsString()
   ORG_TERMS_VERSION: string;
 

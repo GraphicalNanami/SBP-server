@@ -1,10 +1,13 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from '@/modules/users/schemas/user.schema';
+import { User } from '@/src/modules/users/schemas/user.schema';
+import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -19,6 +22,7 @@ export class UsersService {
     return this.userModel.findById(id).exec();
   }
 
+  @LogInteraction()
   async create(
     email: string,
     hashedPassword: string,
@@ -39,9 +43,11 @@ export class UsersService {
     return newUser.save();
   }
 
+  @LogInteraction()
   async update(id: string, updateData: Partial<User>): Promise<User | null> {
     return this.userModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
   }
 }
+

@@ -342,3 +342,7 @@ Anyone is not allowed to run build .
 
 PAths shall now look like ../../../service 
 but shall look like @/src/module/service for clear readability This will enhance our code readability a lot.
+
+## Rule of logging 
+
+everything shall be logged 

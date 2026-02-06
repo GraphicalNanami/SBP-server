@@ -1,14 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Profile } from '@/modules/profiles/schemas/profile.schema';
-import { UsersService } from '@/modules/users/users.service';
-import { FileUploadService } from '@/modules/profiles/services/file-upload.service';
-import { ExperienceService } from '@/modules/experience/experience.service';
-import { WalletsService } from '@/modules/wallets/wallets.service';
+import { Profile } from '@/src/modules/profiles/schemas/profile.schema';
+import { UsersService } from '@/src/modules/users/users.service';
+import { FileUploadService } from '@/src/modules/profiles/services/file-upload.service';
+import { ExperienceService } from '@/src/modules/experience/experience.service';
+import { WalletsService } from '@/src/modules/wallets/wallets.service';
+import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
 
 @Injectable()
 export class ProfilesService {
+  private readonly logger = new Logger(ProfilesService.name);
+
   constructor(
     @InjectModel(Profile.name) private profileModel: Model<Profile>,
     private usersService: UsersService,
@@ -22,11 +25,13 @@ export class ProfilesService {
     return this.profileModel.findOne({ userId: id }).exec();
   }
 
+  @LogInteraction()
   async create(profileData: Partial<Profile>): Promise<Profile> {
     const newProfile = new this.profileModel(profileData);
     return newProfile.save();
   }
 
+  @LogInteraction()
   async update(
     userId: string | Types.ObjectId,
     updateData: Partial<Profile>,
@@ -37,6 +42,7 @@ export class ProfilesService {
       .exec();
   }
 
+  @LogInteraction()
   async uploadProfilePicture(
     userId: string,
     file: Express.Multer.File,
@@ -63,6 +69,7 @@ export class ProfilesService {
     return pictureUrl;
   }
 
+  @LogInteraction()
   async getCompleteProfile(userId: string): Promise<any> {
     const [user, profile, experience, wallets] = await Promise.all([
       this.usersService.findById(userId),
@@ -89,3 +96,4 @@ export class ProfilesService {
     };
   }
 }
+

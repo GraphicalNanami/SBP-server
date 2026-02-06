@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Keypair, Networks } from '@stellar/stellar-sdk';
-import { RedisService } from '@/database/redis/redis.service';
+import { RedisService } from '@/src/database/redis/redis.service';
 import * as crypto from 'crypto';
 
 @Injectable()

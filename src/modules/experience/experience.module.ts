@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Experience, ExperienceSchema } from '@/modules/experience/schemas/experience.schema';
-import { ExperienceService } from '@/modules/experience/experience.service';
-import { ExperienceController } from '@/modules/experience/experience.controller';
+import { Experience, ExperienceSchema } from '@/src/modules/experience/schemas/experience.schema';
+import { ExperienceService } from '@/src/modules/experience/experience.service';
+import { ExperienceController } from '@/src/modules/experience/experience.controller';
 
 @Module({
   imports: [

@@ -8,14 +8,14 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { OrganizationsService } from '@/modules/organizations/organizations.service';
-import { CreateOrganizationDto } from '@/modules/organizations/dto/create-organization.dto';
-import { UpdateOrganizationProfileDto } from '@/modules/organizations/dto/update-organization-profile.dto';
-import { UpdateSocialLinksDto } from '@/modules/organizations/dto/update-social-links.dto';
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { OrganizationRoleGuard } from '@/modules/organizations/guards/organization-role.guard';
-import { RequireRole } from '@/modules/organizations/decorators/require-role.decorator';
-import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
+import { OrganizationsService } from '@/src/modules/organizations/organizations.service';
+import { CreateOrganizationDto } from '@/src/modules/organizations/dto/create-organization.dto';
+import { UpdateOrganizationProfileDto } from '@/src/modules/organizations/dto/update-organization-profile.dto';
+import { UpdateSocialLinksDto } from '@/src/modules/organizations/dto/update-social-links.dto';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { OrganizationRoleGuard } from '@/src/modules/organizations/guards/organization-role.guard';
+import { RequireRole } from '@/src/modules/organizations/decorators/require-role.decorator';
+import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
 
 @Controller('organizations')
 @UseGuards(JwtAuthGuard)

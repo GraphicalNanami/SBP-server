@@ -7,9 +7,9 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ExperienceService } from './experience.service';
-import { CreateExperienceDto, UpdateExperienceDto } from './dto/experience.dto';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { ExperienceService } from '@/src/modules/experience/experience.service';
+import { CreateExperienceDto, UpdateExperienceDto } from '@/src/modules/experience/dto/experience.dto';
 
 @Controller('experience')
 export class ExperienceController {
@@ -18,18 +18,18 @@ export class ExperienceController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: any) {
-    return this.experienceService.findByUserId(req.user.userId);
+    return this.experienceService.findByUserId(req.user._id);
   }
 
   @Put()
   @UseGuards(JwtAuthGuard)
   async create(@Req() req: any, @Body() data: CreateExperienceDto) {
-    return this.experienceService.upsert(req.user.userId, data);
+    return this.experienceService.upsert(req.user._id, data);
   }
 
   @Patch()
   @UseGuards(JwtAuthGuard)
   async update(@Req() req: any, @Body() data: UpdateExperienceDto) {
-    return this.experienceService.update(req.user.userId, data);
+    return this.experienceService.update(req.user._id, data);
   }
 }

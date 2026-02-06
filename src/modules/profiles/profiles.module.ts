@@ -2,13 +2,13 @@ import { Module, BadRequestException } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { Profile, ProfileSchema } from '@/modules/profiles/schemas/profile.schema';
-import { ProfilesService } from '@/modules/profiles/profiles.service';
-import { ProfilesController } from '@/modules/profiles/profiles.controller';
-import { UsersModule } from '@/modules/users/users.module';
-import { FileUploadService } from '@/modules/profiles/services/file-upload.service';
-import { ExperienceModule } from '@/modules/experience/experience.module';
-import { WalletsModule } from '@/modules/wallets/wallets.module';
+import { Profile, ProfileSchema } from '@/src/modules/profiles/schemas/profile.schema';
+import { ProfilesService } from '@/src/modules/profiles/profiles.service';
+import { ProfilesController } from '@/src/modules/profiles/profiles.controller';
+import { UsersModule } from '@/src/modules/users/users.module';
+import { FileUploadService } from '@/src/modules/profiles/services/file-upload.service';
+import { ExperienceModule } from '@/src/modules/experience/experience.module';
+import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 
 @Module({
   imports: [

@@ -10,9 +10,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
-import { ProfilesService } from '@/modules/profiles/profiles.service';
-import { UpdatePersonalInfoDto } from '@/modules/profiles/dto/update-personal-info.dto';
+import { JwtAuthGuard } from '@/src/modules/auth/guards/jwt-auth.guard';
+import { ProfilesService } from '@/src/modules/profiles/profiles.service';
+import { UpdatePersonalInfoDto } from '@/src/modules/profiles/dto/update-personal-info.dto';
 
 @Controller('profile')
 export class ProfilesController {
@@ -21,7 +21,7 @@ export class ProfilesController {
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async getMe(@Req() req: any) {
-    return this.profilesService.getCompleteProfile(req.user.userId);
+    return this.profilesService.getCompleteProfile(req.user._id);
   }
 
   @Patch('personal-info')
@@ -31,7 +31,7 @@ export class ProfilesController {
     @Body() updateDto: UpdatePersonalInfoDto,
   ) {
     const profile = await this.profilesService.update(
-      req.user.userId,
+      req.user._id,
       updateDto,
     );
     return {
@@ -45,7 +45,7 @@ export class ProfilesController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadPicture(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
     const profilePictureUrl = await this.profilesService.uploadProfilePicture(
-      req.user.userId,
+      req.user._id,
       file,
     );
     return {

@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Wallet } from '@/modules/wallets/schemas/wallet.schema';
-import { StellarVerificationService } from '@/modules/wallets/services/stellar-verification.service';
-import { AddWalletDto, UpdateWalletDto } from '@/modules/wallets/dto/wallet.dto';
+import { Wallet } from '@/src/modules/wallets/schemas/wallet.schema';
+import { StellarVerificationService } from '@/src/modules/wallets/services/stellar-verification.service';
+import { AddWalletDto, UpdateWalletDto } from '@/src/modules/wallets/dto/wallet.dto';
 
 @Injectable()
 export class WalletsService {

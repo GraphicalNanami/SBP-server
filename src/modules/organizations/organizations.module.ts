@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { OrganizationsController } from '@/modules/organizations/organizations.controller';
-import { OrganizationsService } from '@/modules/organizations/organizations.service';
-import { MembersController } from '@/modules/organizations/members.controller';
-import { MembersService } from '@/modules/organizations/members.service';
+import { OrganizationsController } from '@/src/modules/organizations/organizations.controller';
+import { OrganizationsService } from '@/src/modules/organizations/organizations.service';
+import { MembersController } from '@/src/modules/organizations/members.controller';
+import { MembersService } from '@/src/modules/organizations/members.service';
 import {
   Organization,
   OrganizationSchema,
-} from '@/modules/organizations/schemas/organization.schema';
+} from '@/src/modules/organizations/schemas/organization.schema';
 import {
   OrganizationMember,
   OrganizationMemberSchema,
-} from '@/modules/organizations/schemas/organization-member.schema';
-import { UsersModule } from '@/modules/users/users.module';
-import { OrganizationRoleGuard } from '@/modules/organizations/guards/organization-role.guard';
+} from '@/src/modules/organizations/schemas/organization-member.schema';
+import { UsersModule } from '@/src/modules/users/users.module';
+import { OrganizationRoleGuard } from '@/src/modules/organizations/guards/organization-role.guard';
 
 @Module({
   imports: [

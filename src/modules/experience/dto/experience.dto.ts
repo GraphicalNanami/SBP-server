@@ -1,5 +1,5 @@
 import { IsArray, IsEnum, IsInt, IsOptional, Max, Min, IsString, MaxLength, ArrayMaxSize } from 'class-validator';
-import { Web3SkillLevel } from '../enums/web3-skill-level.enum';
+import { Web3SkillLevel } from '@/src/modules/experience/enums/web3-skill-level.enum';
 
 export class CreateExperienceDto {
   @IsOptional()

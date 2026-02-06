@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, IsUrl, MaxLength } from 'class-validator';
-import { Gender } from '@/common/enums/gender.enum';
+import { Gender } from '@/src/common/enums/gender.enum';
 
 export class UpdatePersonalInfoDto {
   @IsOptional()

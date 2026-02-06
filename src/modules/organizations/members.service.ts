@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { OrganizationMember } from '@/modules/organizations/schemas/organization-member.schema';
-import { UsersService } from '@/modules/users/users.service';
-import { MemberRole } from '@/modules/organizations/enums/member-role.enum';
-import { MemberStatus } from '@/modules/organizations/enums/member-status.enum';
+import { OrganizationMember } from '@/src/modules/organizations/schemas/organization-member.schema';
+import { UsersService } from '@/src/modules/users/users.service';
+import { MemberRole } from '@/src/modules/organizations/enums/member-role.enum';
+import { MemberStatus } from '@/src/modules/organizations/enums/member-status.enum';
 
 @Injectable()
 export class MembersService {

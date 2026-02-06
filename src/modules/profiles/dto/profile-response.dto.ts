@@ -1,5 +1,5 @@
-import { Gender } from '@/common/enums/gender.enum';
-import { UserRole } from '@/common/enums/user-role.enum';
+import { Gender } from '@/src/common/enums/gender.enum';
+import { UserRole } from '@/src/common/enums/user-role.enum';
 
 export class ProfileResponseDto {
   user: {

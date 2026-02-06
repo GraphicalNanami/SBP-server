@@ -1,18 +1,21 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { createHash, randomBytes } from 'crypto';
 import { hash, compare } from 'bcrypt';
 import { Types } from 'mongoose';
-import { UsersService } from '@/modules/users/users.service';
-import { ProfilesService } from '@/modules/profiles/profiles.service';
-import { RedisService } from '@/database/redis/redis.service';
-import { User } from '@/modules/users/schemas/user.schema';
-import { RegisterDto } from '@/modules/auth/dto/register.dto';
-import { LoginDto } from '@/modules/auth/dto/login.dto';
+import { UsersService } from '@/src/modules/users/users.service';
+import { ProfilesService } from '@/src/modules/profiles/profiles.service';
+import { RedisService } from '@/src/database/redis/redis.service';
+import { User } from '@/src/modules/users/schemas/user.schema';
+import { RegisterDto } from '@/src/modules/auth/dto/register.dto';
+import { LoginDto } from '@/src/modules/auth/dto/login.dto';
+import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private profilesService: ProfilesService,
@@ -21,11 +24,12 @@ export class AuthService {
     private redisService: RedisService,
   ) {}
 
+  @LogInteraction()
   async register(registerDto: RegisterDto) {
     const { email, password, name } = registerDto;
 
     // Hash password
-    const bcryptRounds = this.configService.get<number>('BCRYPT_ROUNDS') || 10;
+    const bcryptRounds = parseInt(this.configService.get<string>('BCRYPT_ROUNDS', '10'), 10);
     const hashedPassword = await hash(password, bcryptRounds);
 
     // Create user (UsersService handles duplicate check)
@@ -50,6 +54,7 @@ export class AuthService {
     };
   }
 
+  @LogInteraction()
   async login(loginDto: LoginDto) {
     const { email, password } = loginDto;
 
@@ -106,6 +111,7 @@ export class AuthService {
     return token;
   }
 
+  @LogInteraction()
   async refresh(refreshToken: string) {
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
     const userId = await this.redisService.get(`refresh:${tokenHash}`);
@@ -136,8 +142,10 @@ export class AuthService {
     };
   }
 
+  @LogInteraction()
   async logout(refreshToken: string) {
     const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
     await this.redisService.del(`refresh:${tokenHash}`);
   }
 }
+
