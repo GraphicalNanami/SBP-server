@@ -131,6 +131,28 @@ export class EventsIndexerController {
     }
   }
 
+  @Get('authors')
+  async getAuthors(@Query('limit') limitStr?: string, @Query('platform') platform?: 'twitter' | 'reddit' | 'discord') {
+    const limit = limitStr ? parseInt(limitStr, 10) : 50;
+    const authors = await this.postProcessingService.getAuthors({ limit, platform });
+
+    return {
+      count: authors.length,
+      platform: platform || 'all',
+      authors: authors.map(author => ({
+        id: author.id,
+        username: author.username,
+        display_name: author.display_name,
+        platform: author.platform,
+        followers_count: author.followers_count,
+        verified: author.verified,
+        post_count: author.post_count,
+        first_seen: author.first_seen,
+        last_active: author.last_active
+      }))
+    };
+  }
+
   @Get('stats')
   async getIndexingStats(@Query('hours') hoursStr?: string) {
     const hours = hoursStr ? parseInt(hoursStr, 10) : 24;

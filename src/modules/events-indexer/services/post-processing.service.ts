@@ -18,6 +18,16 @@ interface ProcessedPost {
   raw_data?: any;
 }
 
+interface PlatformData {
+  id?: string;
+  username?: string;
+  display_name?: string;
+  profile_image_url?: string;
+  verified?: boolean;
+  followers_count?: number;
+  following_count?: number;
+}
+
 @Injectable()
 export class PostProcessingService {
   private readonly logger = new Logger(PostProcessingService.name);
@@ -294,6 +304,55 @@ export class PostProcessingService {
     } catch (error) {
       this.logger.error(`Error getting author stats: ${error.message}`);
       return null;
+    }
+  }
+
+  async getAuthors(options: {
+    limit?: number;
+    platform?: 'twitter' | 'reddit' | 'discord';
+  } = {}): Promise<any[]> {
+    try {
+      const { limit = 50, platform } = options;
+      
+      const query: any = {};
+      if (platform) {
+        query[`platforms.${platform}`] = { $exists: true };
+      }
+
+      const authors = await this.authorModel
+        .find(query)
+        .sort({ last_active: -1 })
+        .limit(limit)
+        .exec(); // Remove .select() to get all fields
+
+      return authors.map(author => {
+        // Convert Mongoose document to plain object
+        const authorObj = author.toObject ? author.toObject() : author;
+        
+        // Extract platform-specific info with proper typing
+        const platformData: PlatformData = platform 
+          ? (authorObj.platforms?.[platform] || {})
+          : (authorObj.platforms?.twitter || authorObj.platforms?.reddit || authorObj.platforms?.discord || {});
+          
+        const detectedPlatform = platform || 
+          (authorObj.platforms?.twitter ? 'twitter' : 
+           authorObj.platforms?.reddit ? 'reddit' : 'discord');
+          
+        return {
+          id: authorObj._id,
+          display_name: authorObj.display_name,
+          username: platformData.username || 'unknown',
+          platform: detectedPlatform,
+          followers_count: platformData.followers_count || 0,
+          verified: platformData.verified || false,
+          post_count: authorObj.post_count || 0,
+          first_seen: authorObj.first_seen,
+          last_active: authorObj.last_active
+        };
+      });
+    } catch (error) {
+      this.logger.error(`Error getting authors: ${error.message}`);
+      return [];
     }
   }
 
