@@ -42,7 +42,7 @@ export class SubmissionOrganizerGuard implements CanActivate {
     );
 
     if (!member) {
-      throw new ForbiddenException('You do not have access to this hackathon's submissions');
+      throw new ForbiddenException('You do not have access to this hackathon\'s submissions');
     }
 
     // Default requirement: ADMIN or EDITOR (Organizer)

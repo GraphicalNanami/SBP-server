@@ -218,8 +218,8 @@ export class BuildsService {
       this.buildModel
         .find(query)
         .sort(sort)
-        .skip(dto.offset)
-        .limit(dto.limit)
+        .skip(dto.offset || 0)
+        .limit(dto.limit || 20)
         .exec(),
       this.buildModel.countDocuments(query),
     ]);
@@ -270,7 +270,7 @@ export class BuildsService {
         canInvite: inviteDto.permissions?.canInvite || false,
         canSubmit: inviteDto.permissions?.canSubmit || false,
       },
-      invitedBy: inviter._id,
+      invitedBy: inviter!._id,
       invitedAt: new Date(),
     };
 
@@ -325,7 +325,7 @@ export class BuildsService {
 
     // Verify requester is LEAD
     const leadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === lead._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString()
     );
 
     if (!leadMember || leadMember.role !== TeamMemberRole.LEAD) {
@@ -356,7 +356,7 @@ export class BuildsService {
     
     // Verify requester is LEAD
     const leadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === lead._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString()
     );
 
     if (!leadMember || leadMember.role !== TeamMemberRole.LEAD) {
@@ -384,7 +384,7 @@ export class BuildsService {
     
     // Verify requester is LEAD
     const currentLeadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === currentLeadUser._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === currentLeadUser!._id.toString()
     );
 
     if (!currentLeadMember || currentLeadMember.role !== TeamMemberRole.LEAD) {

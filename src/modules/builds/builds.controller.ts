@@ -9,8 +9,6 @@ import {
   Query,
   Req,
   UseGuards,
-  HttpCode,
-  HttpStatus,
   ParseUUIDPipe,
   NotFoundException,
 } from '@nestjs/common';
@@ -19,9 +17,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiParam,
-  ApiBody,
 } from '@nestjs/swagger';
 import { BuildsService } from './builds.service';
 import { CreateBuildDto } from './dto/create-build.dto';
@@ -59,7 +55,6 @@ export class BuildsController {
   @ApiResponse({ status: 200, description: 'Returns build details.' })
   @ApiResponse({ status: 404, description: 'Build not found.' })
   async getPublicBySlug(@Param('slug') slug: string) {
-    // Only returns if PUBLISHED and PUBLIC
     const build = await this.buildsService.findBySlug(slug);
     if (build.status !== BuildStatus.PUBLISHED || build.visibility !== BuildVisibility.PUBLIC) {
       throw new NotFoundException(`Public build with slug ${slug} not found`);
@@ -84,7 +79,7 @@ export class BuildsController {
   @Get('my-builds')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List user's builds' })
+  @ApiOperation({ summary: 'List user\'s builds' })
   @ApiResponse({ status: 200, description: 'Returns list of builds where user is a member.' })
   async listUserBuilds(@Req() req: any) {
     const userId = req.user.uuid || req.user.id || req.user._id;
@@ -116,7 +111,7 @@ export class BuildsController {
   }
 
   @Post(':id/publish')
-  @UseGuards(JwtAuthGuard, BuildRoleGuard) // Role guard checks if user is member, but specific check (LEAD) is in service
+  @UseGuards(JwtAuthGuard, BuildRoleGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Publish build' })
   async publish(
@@ -174,7 +169,7 @@ export class BuildsController {
   }
 
   @Delete(':id/team/:memberUuid')
-  @UseGuards(JwtAuthGuard, BuildRoleGuard) // Service checks for LEAD
+  @UseGuards(JwtAuthGuard, BuildRoleGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Remove team member' })
   @ApiParam({ name: 'memberUuid', description: 'Team member UUID' })
@@ -188,7 +183,7 @@ export class BuildsController {
   }
 
   @Patch(':id/team/:memberUuid')
-  @UseGuards(JwtAuthGuard, BuildRoleGuard) // Service checks for LEAD
+  @UseGuards(JwtAuthGuard, BuildRoleGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update team member role/permissions' })
   async updateTeamMember(
@@ -202,7 +197,7 @@ export class BuildsController {
   }
 
   @Post(':id/team/transfer-leadership')
-  @UseGuards(JwtAuthGuard, BuildRoleGuard) // Service checks for LEAD
+  @UseGuards(JwtAuthGuard, BuildRoleGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Transfer team leadership' })
   async transferLeadership(

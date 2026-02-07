@@ -83,7 +83,7 @@ export class SubmissionsService {
       statusHistory: [
         {
           status: SubmissionStatus.DRAFT,
-          changedBy: user._id,
+          changedBy: user!._id,
           changedAt: new Date(),
           reason: 'Initial draft created',
         },
@@ -149,7 +149,7 @@ export class SubmissionsService {
     submission.submittedAt = new Date();
     submission.statusHistory.push({
       status: SubmissionStatus.SUBMITTED,
-      changedBy: user._id,
+      changedBy: user!._id,
       changedAt: new Date(),
       reason: 'Submitted to hackathon',
     });
@@ -173,7 +173,7 @@ export class SubmissionsService {
     submission.status = SubmissionStatus.WITHDRAWN;
     submission.statusHistory.push({
       status: SubmissionStatus.WITHDRAWN,
-      changedBy: user._id,
+      changedBy: user!._id,
       changedAt: new Date(),
       reason: reason || 'Withdrawn by team',
     });
@@ -223,8 +223,8 @@ export class SubmissionsService {
       this.submissionModel
         .find(query)
         .sort(sort)
-        .skip(dto.offset)
-        .limit(dto.limit)
+        .skip(dto.offset || 0)
+        .limit(dto.limit || 20)
         .exec(),
       this.submissionModel.countDocuments(query),
     ]);
@@ -259,7 +259,7 @@ export class SubmissionsService {
         $push: {
           statusHistory: {
             status: SubmissionStatus.UNDER_REVIEW,
-            changedBy: adminUser._id,
+            changedBy: adminUser!._id,
             changedAt: new Date(),
             reason: 'Judging started',
           },
@@ -279,11 +279,11 @@ export class SubmissionsService {
     // Add or update score
     // Check if judge already scored
     const existingScoreIndex = submission.judgingDetails.scores.findIndex(
-      (s) => (s.judgeId as Types.ObjectId).toString() === judgeUser._id.toString()
+      (s) => (s.judgeId as Types.ObjectId).toString() === judgeUser!._id.toString()
     );
 
     const scoreEntry = {
-      judgeId: judgeUser._id,
+      judgeId: judgeUser!._id,
       score: dto.score,
       feedback: dto.feedback,
       judgedAt: new Date(),
@@ -312,7 +312,7 @@ export class SubmissionsService {
     
     submission.statusHistory.push({
       status: SubmissionStatus.WINNER,
-      changedBy: adminUser._id,
+      changedBy: adminUser!._id,
       changedAt: new Date(),
       reason: dto.announcement || 'Selected as winner',
     });
@@ -327,7 +327,7 @@ export class SubmissionsService {
     submission.status = SubmissionStatus.DISQUALIFIED;
     submission.statusHistory.push({
       status: SubmissionStatus.DISQUALIFIED,
-      changedBy: adminUser._id,
+      changedBy: adminUser!._id,
       changedAt: new Date(),
       reason: reason,
     });

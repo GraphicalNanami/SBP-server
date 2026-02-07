@@ -37,9 +37,7 @@ export class CreateBuildDto {
   @MaxLength(500)
   vision: string;
 
-  @ApiProperty({ example: '# Features
-
-...' })
+  @ApiProperty({ example: '# Features\n\n...' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(10000)
