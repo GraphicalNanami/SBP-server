@@ -11,8 +11,13 @@ import slugify from 'slugify';
 import { Hackathon } from './schemas/hackathon.schema';
 import { CreateHackathonDto } from './dto/create-hackathon.dto';
 import { UpdateHackathonDto } from './dto/update-hackathon.dto';
+import {
+  HackathonTimeFilter,
+  ListPublicHackathonsDto,
+} from './dto/list-public-hackathons.dto';
 import { MembersService } from '../organizations/members.service';
 import { HackathonStatus } from './enums/hackathon-status.enum';
+import { HackathonVisibility } from './enums/hackathon-visibility.enum';
 import { MemberRole } from '../organizations/enums/member-role.enum';
 import { UuidUtil } from '@/src/common/utils/uuid.util';
 import { UsersService } from '../users/users.service';
@@ -337,5 +342,72 @@ export class HackathonsService {
     } as any);
 
     return hackathon.save();
+  }
+
+  /**
+   * List public hackathons with time-based filtering
+   * @param dto - Query parameters (filter, limit, offset)
+   * @returns Array of public hackathons
+   */
+  async listPublicHackathons(
+    dto: ListPublicHackathonsDto,
+  ): Promise<{ hackathons: Hackathon[]; total: number }> {
+    const now = new Date();
+    const query: any = {
+      status: HackathonStatus.APPROVED,
+      visibility: HackathonVisibility.PUBLIC,
+    };
+
+    // Apply time-based filtering
+    if (dto.filter === HackathonTimeFilter.UPCOMING) {
+      // Not started yet
+      query.startTime = { $gt: now };
+    } else if (dto.filter === HackathonTimeFilter.ONGOING) {
+      // Started but before submission deadline
+      query.startTime = { $lte: now };
+      query.submissionDeadline = { $gte: now };
+    } else if (dto.filter === HackathonTimeFilter.PAST) {
+      // After submission deadline
+      query.submissionDeadline = { $lt: now };
+    }
+    // If filter === 'all', no time filtering
+
+    const [hackathons, total] = await Promise.all([
+      this.hackathonModel
+        .find(query)
+        .select(
+          'uuid slug name category description posterUrl prizePool prizeAsset tags startTime submissionDeadline venue status visibility organizationId createdAt updatedAt',
+        )
+        .sort({ startTime: 1 }) // Sort by start time ascending (soonest first)
+        .skip(dto.offset || 0)
+        .limit(dto.limit || 20)
+        .exec(),
+      this.hackathonModel.countDocuments(query),
+    ]);
+
+    return { hackathons, total };
+  }
+
+  /**
+   * Get public hackathon details by slug
+   * @param slug - Hackathon slug
+   * @returns Full hackathon details
+   */
+  async findPublicBySlug(slug: string): Promise<Hackathon> {
+    const hackathon = await this.hackathonModel
+      .findOne({
+        slug,
+        status: HackathonStatus.APPROVED,
+        visibility: HackathonVisibility.PUBLIC,
+      })
+      .exec();
+
+    if (!hackathon) {
+      throw new NotFoundException(
+        `Public hackathon with slug ${slug} not found`,
+      );
+    }
+
+    return hackathon;
   }
 }
