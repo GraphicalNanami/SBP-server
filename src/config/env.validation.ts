@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  ValidateIf,
   validateSync,
 } from 'class-validator';
 
@@ -20,11 +21,26 @@ class EnvironmentVariables {
   @IsString()
   MONGO_URI: string;
 
+  // Redis configuration: Either REDIS_URL OR (REDIS_HOST + REDIS_PORT)
+  @IsOptional()
   @IsString()
-  REDIS_HOST: string;
+  REDIS_URL?: string;
 
+  @ValidateIf((o) => !o.REDIS_URL)
+  @IsString()
+  REDIS_HOST?: string;
+
+  @ValidateIf((o) => !o.REDIS_URL)
   @IsNumber()
-  REDIS_PORT: number;
+  REDIS_PORT?: number;
+
+  @IsOptional()
+  @IsString()
+  REDIS_PASSWORD?: string;
+
+  @IsOptional()
+  @IsNumber()
+  REDIS_DB?: number;
 
   @IsString()
   JWT_SECRET: string;
@@ -82,5 +98,13 @@ export function validate(config: Record<string, unknown>) {
   if (errors.length > 0) {
     throw new Error(errors.toString());
   }
+
+  // Custom validation: Ensure Redis configuration is provided
+  if (!validatedConfig.REDIS_URL && (!validatedConfig.REDIS_HOST || !validatedConfig.REDIS_PORT)) {
+    throw new Error(
+      'Redis configuration error: Either REDIS_URL or both REDIS_HOST and REDIS_PORT must be provided'
+    );
+  }
+
   return validatedConfig;
 }
