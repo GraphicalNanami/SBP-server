@@ -193,7 +193,7 @@ export class EventsIndexerController {
     @Query('hours') hoursStr?: string,
     @Query('platform') platform?: 'twitter' | 'reddit' | 'discord',
   ) {
-    const hours = hoursStr ? parseInt(hoursStr, 10) : 24;
+    const hours = hoursStr ? parseInt(hoursStr, 10) : undefined; // undefined = all posts
     const posts = await this.postProcessingService.getRecentPosts(
       hours,
       platform,
@@ -201,7 +201,7 @@ export class EventsIndexerController {
 
     return {
       count: posts.length,
-      time_window_hours: hours,
+      time_window_hours: hours || 'all',
       platform: platform || 'all',
       posts: posts.map((post) => ({
         id: post._id,

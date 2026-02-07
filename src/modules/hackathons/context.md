@@ -13,24 +13,33 @@
 - Comprehensive hackathon updates including tracks, prizes, custom questions, and submission requirements
 
 ## Public Interfaces
-- `HackathonsController`: Organizer endpoints for hackathon management
-  - `POST /hackathons`: Create new hackathon (requires org membership)
-  - `GET /hackathons/:id`: Get hackathon by ID
-  - `GET /hackathons/slug/:slug`: Get hackathon by slug
-  - `GET /hackathons/organization/:orgId`: List hackathons by organization
-  - `PATCH /hackathons/:id`: Update hackathon (requires EDITOR role or creator)
-  - `POST /hackathons/:id/submit-for-review`: Submit hackathon for admin review (requires creator or org ADMIN)
+- `HackathonsController`: Endpoints for hackathon management
+  - **Public Endpoints (no authentication):**
+    - `GET /hackathons/public/list`: List public hackathons with time-based filtering (upcoming, ongoing, past)
+    - `GET /hackathons/public/:slug`: Get full hackathon details by slug
+  - **Authenticated Endpoints:**
+    - `POST /hackathons`: Create new hackathon (requires org membership)
+    - `GET /hackathons/:id`: Get hackathon by ID (for organizer access to DRAFT/REJECTED)
+    - `GET /hackathons/organization/:orgId`: List hackathons by organization
+    - `PATCH /hackathons/:id`: Update hackathon (requires EDITOR role or creator)
+    - `POST /hackathons/:id/submit-for-review`: Submit hackathon for admin review (requires creator or org ADMIN)
 - `HackathonsService`: Core business logic for hackathon lifecycle
   - `create()`: Create new hackathon with validation
   - `update()`: Update hackathon with permission checks and validation
   - `submitForReview()`: Submit hackathon for admin review (DRAFT/REJECTED → UNDER_REVIEW)
-  - `findById()`, `findBySlug()`, `findAllByOrganization()`: Read operations
+  - `listPublicHackathons()`: List APPROVED + PUBLIC hackathons with time filtering
+  - `findPublicBySlug()`: Get APPROVED + PUBLIC hackathon by slug
+  - `findById()`, `findAllByOrganization()`: Read operations
 - `HackathonRoleGuard`: Permission enforcement based on organization roles and creator status
+- `ListPublicHackathonsDto`: Query parameters for public listing (filter, limit, offset)
+- `HackathonSummaryDto`: Minimal hackathon summary for list responses
 - `UpdateHackathonDto`: Comprehensive DTO supporting partial updates of all hackathon fields including nested documents
 
 ## Invariants
 - Hackathons are created in `DRAFT` status
 - Only `APPROVED` hackathons with `PUBLIC` visibility are visible to public
+- Public endpoints filter strictly by status=APPROVED AND visibility=PUBLIC
+- Public listing supports pagination (max 100 per page) and time-based filtering
 - User must be an active member of an organization to create a hackathon
 - Hackathon names must be unique within an organization
 - Slugs are auto-generated and unique across the platform
@@ -67,3 +76,9 @@
 
 ### HackathonCategory
 - DEFI, NFT, GAMING, SOCIAL, INFRASTRUCTURE, TOOLING, EDUCATION, DAO, GENERAL
+
+### HackathonTimeFilter (for public listing)
+- ALL: No time filtering, returns all public hackathons
+- UPCOMING: Not started yet (before startTime)
+- ONGOING: Started but before submission deadline
+- PAST: After submission deadline

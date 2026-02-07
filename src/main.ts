@@ -1,16 +1,32 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '@/src/app.module';
 import { LoggingInterceptor } from '@/src/common/interceptors/logging.interceptor';
-import { Logger } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
   app.useGlobalInterceptors(new LoggingInterceptor());
+
+  // Enable validation pipe with transformation
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: false,
+    }),
+  );
+
+  // Serve static files from uploads directory
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
 
   app.setGlobalPrefix('api');
   // Enable CORS with specific origins
@@ -24,14 +40,13 @@ async function bootstrap() {
       'http://127.0.0.1:5000',
       'http://127.0.0.1:3001',
       'http://127.0.0.1:8080',
+      'https://57b8-89-39-107-203.ngrok-free.app',
+      'https://fcb5-2409-40e6-2f-93bd-75f3-ef6b-b8b1-fe9b.ngrok-free.app',
+      'https://sbp-client-hazel.vercel.app',
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'Accept',
-      'ngrok-skip-browser-warning',
-    ],
+    // eslint-disable-next-line prettier/prettier
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'ngrok-skip-browser-warning'],
     credentials: true,
   });
 
