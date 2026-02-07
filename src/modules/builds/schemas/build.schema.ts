@@ -165,11 +165,11 @@ export class Build extends Document {
   @Prop({ required: true, maxlength: 200 })
   name: string;
 
-  @Prop({ required: true, maxlength: 120 })
-  tagline: string;
+  @Prop({ maxlength: 120 })
+  tagline?: string;
 
-  @Prop({ type: String, enum: BuildCategory, required: true })
-  category: BuildCategory;
+  @Prop({ type: String, enum: BuildCategory })
+  category?: BuildCategory;
 
   @Prop({
     type: String,
@@ -186,11 +186,11 @@ export class Build extends Document {
   })
   visibility: BuildVisibility;
 
-  @Prop({ required: true, maxlength: 500 })
-  vision: string;
+  @Prop({ maxlength: 500 })
+  vision?: string;
 
-  @Prop({ required: true, maxlength: 10000 })
-  description: string;
+  @Prop({ maxlength: 10000 })
+  description?: string;
 
   @Prop()
   logo?: string;
@@ -207,8 +207,8 @@ export class Build extends Document {
   @Prop({ type: [SocialLink], default: [] })
   socialLinks: SocialLink[];
 
-  @Prop({ required: true })
-  teamDescription: string;
+  @Prop()
+  teamDescription?: string;
 
   @Prop({ type: [TeamMember], default: [] })
   teamMembers: TeamMember[];
@@ -216,11 +216,11 @@ export class Build extends Document {
   @Prop({ type: [String], default: [] })
   teamSocials: string[];
 
-  @Prop({ required: true })
-  teamLeadTelegram: string;
+  @Prop()
+  teamLeadTelegram?: string;
 
-  @Prop({ required: true })
-  contactEmail: string;
+  @Prop()
+  contactEmail?: string;
 
   @Prop()
   contractAddress?: string;

@@ -70,7 +70,11 @@ export class BuildsService {
     return newBuild.save();
   }
 
-  async update(uuid: string, userId: string, updateDto: UpdateBuildDto): Promise<Build> {
+  async update(
+    uuid: string,
+    userId: string,
+    updateDto: UpdateBuildDto,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     await this.validateUserPermission(build, userId, 'canEdit');
 
@@ -86,23 +90,40 @@ export class BuildsService {
     return build.save();
   }
 
-  async publish(uuid: string, userId: string, publishDto: PublishBuildDto): Promise<Build> {
+  async publish(
+    uuid: string,
+    userId: string,
+    publishDto: PublishBuildDto,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     const user = await this.usersService.findByUuid(userId);
     if (!user) throw new NotFoundException('User not found');
 
     // Only LEAD can publish
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
     if (!member || member.role !== TeamMemberRole.LEAD) {
       throw new ForbiddenException('Only the team lead can publish the build');
     }
 
-    // Validate fields
-    if (!publishDto.contractAddress || !publishDto.stellarAddress) {
-      throw new BadRequestException('Stellar addresses are required for publishing');
+    // Validate all required fields are present before publishing
+    const missingFields: string[] = [];
+    if (!build.tagline) missingFields.push('tagline');
+    if (!build.category) missingFields.push('category');
+    if (!build.vision) missingFields.push('vision');
+    if (!build.description) missingFields.push('description');
+    if (!build.teamDescription) missingFields.push('teamDescription');
+    if (!build.teamLeadTelegram) missingFields.push('teamLeadTelegram');
+    if (!build.contactEmail) missingFields.push('contactEmail');
+    if (!publishDto.contractAddress) missingFields.push('contractAddress');
+    if (!publishDto.stellarAddress) missingFields.push('stellarAddress');
+
+    if (missingFields.length > 0) {
+      throw new BadRequestException(
+        `Cannot publish build. Missing required fields: ${missingFields.join(', ')}`,
+      );
     }
 
     build.contractAddress = publishDto.contractAddress;
@@ -128,7 +149,7 @@ export class BuildsService {
 
     // Only LEAD can archive
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
     if (!member || member.role !== TeamMemberRole.LEAD) {
@@ -157,28 +178,43 @@ export class BuildsService {
   async getBuildDetails(uuid: string, userId: string): Promise<Build> {
     const build = await this.findByUuid(uuid);
     const user = await this.usersService.findByUuid(userId);
-    
+
     // If public, anyone can view
-    if (build.status === BuildStatus.PUBLISHED && build.visibility === BuildVisibility.PUBLIC) {
+    if (
+      build.status === BuildStatus.PUBLISHED &&
+      build.visibility === BuildVisibility.PUBLIC
+    ) {
       return build;
     }
 
     // If not public, must be team member (or admin, but let's stick to team member for now)
     // Or if unlisted, anyone with link (which is this endpoint). But "UNLISTED: Anyone with link can view".
-    if (build.status === BuildStatus.PUBLISHED && build.visibility === BuildVisibility.UNLISTED) {
+    if (
+      build.status === BuildStatus.PUBLISHED &&
+      build.visibility === BuildVisibility.UNLISTED
+    ) {
       return build;
     }
 
     // If PRIVATE or DRAFT, must be team member
-    if (!user) throw new ForbiddenException('Authentication required for private builds');
+    if (!user)
+      throw new ForbiddenException(
+        'Authentication required for private builds',
+      );
 
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
-    if (!member || (member.status !== TeamMemberStatus.ACCEPTED && member.status !== TeamMemberStatus.PENDING)) {
+    if (
+      !member ||
+      (member.status !== TeamMemberStatus.ACCEPTED &&
+        member.status !== TeamMemberStatus.PENDING)
+    ) {
       // PENDING members should probably be able to see it to accept?
-      throw new ForbiddenException('You do not have permission to view this build');
+      throw new ForbiddenException(
+        'You do not have permission to view this build',
+      );
     }
 
     return build;
@@ -192,7 +228,9 @@ export class BuildsService {
     return build;
   }
 
-  async listPublicBuilds(dto: ListBuildsDto): Promise<{ builds: Build[]; total: number }> {
+  async listPublicBuilds(
+    dto: ListBuildsDto,
+  ): Promise<{ builds: Build[]; total: number }> {
     const query: any = {
       status: BuildStatus.PUBLISHED,
       visibility: BuildVisibility.PUBLIC,
@@ -231,29 +269,37 @@ export class BuildsService {
     const user = await this.usersService.findByUuid(userId);
     if (!user) throw new NotFoundException('User not found');
 
-    return this.buildModel.find({
-      'teamMembers.userId': user._id,
-      status: { $ne: BuildStatus.ARCHIVED }, // Optional: exclude archived? Doc says "all statuses". I will keep all.
-    }).exec();
+    return this.buildModel
+      .find({
+        'teamMembers.userId': user._id,
+        status: { $ne: BuildStatus.ARCHIVED }, // Optional: exclude archived? Doc says "all statuses". I will keep all.
+      })
+      .exec();
   }
 
   // Team Management
 
-  async inviteTeamMember(uuid: string, inviterId: string, inviteDto: InviteTeamMemberDto): Promise<Build> {
+  async inviteTeamMember(
+    uuid: string,
+    inviterId: string,
+    inviteDto: InviteTeamMemberDto,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     await this.validateUserPermission(build, inviterId, 'canInvite');
 
     const inviter = await this.usersService.findByUuid(inviterId);
     const invitee = await this.usersService.findByEmail(inviteDto.email);
-    
+
     if (!invitee) {
       // For now, require user to exist. Future: allow inviting by email (pending registration)
-      throw new NotFoundException('User with this email not found on the platform');
+      throw new NotFoundException(
+        'User with this email not found on the platform',
+      );
     }
 
     // Check if already a member
     const existingMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === invitee._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === invitee._id.toString(),
     );
 
     if (existingMember) {
@@ -284,7 +330,7 @@ export class BuildsService {
     if (!user) throw new NotFoundException('User not found');
 
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
     if (!member) {
@@ -307,7 +353,7 @@ export class BuildsService {
     if (!user) throw new NotFoundException('User not found');
 
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
     if (!member) {
@@ -318,28 +364,36 @@ export class BuildsService {
     return build.save();
   }
 
-  async removeTeamMember(uuid: string, leadId: string, memberUuid: string): Promise<Build> {
+  async removeTeamMember(
+    uuid: string,
+    leadId: string,
+    memberUuid: string,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     const lead = await this.usersService.findByUuid(leadId);
     if (!lead) throw new NotFoundException('Lead user not found');
 
     // Verify requester is LEAD
     const leadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString(),
     );
 
     if (!leadMember || leadMember.role !== TeamMemberRole.LEAD) {
       throw new ForbiddenException('Only the team lead can remove members');
     }
 
-    const memberIndex = build.teamMembers.findIndex((m) => m.uuid === memberUuid);
+    const memberIndex = build.teamMembers.findIndex(
+      (m) => m.uuid === memberUuid,
+    );
     if (memberIndex === -1) {
       throw new NotFoundException('Member not found');
     }
 
     const member = build.teamMembers[memberIndex];
     if (member.role === TeamMemberRole.LEAD) {
-      throw new BadRequestException('Cannot remove the team lead. Transfer leadership first.');
+      throw new BadRequestException(
+        'Cannot remove the team lead. Transfer leadership first.',
+      );
     }
 
     build.teamMembers[memberIndex].status = TeamMemberStatus.REMOVED;
@@ -350,13 +404,18 @@ export class BuildsService {
     return build.save();
   }
 
-  async updateTeamMember(uuid: string, leadId: string, memberUuid: string, dto: UpdateTeamMemberDto): Promise<Build> {
+  async updateTeamMember(
+    uuid: string,
+    leadId: string,
+    memberUuid: string,
+    dto: UpdateTeamMemberDto,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     const lead = await this.usersService.findByUuid(leadId);
-    
+
     // Verify requester is LEAD
     const leadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === lead!._id.toString(),
     );
 
     if (!leadMember || leadMember.role !== TeamMemberRole.LEAD) {
@@ -370,25 +429,36 @@ export class BuildsService {
 
     if (dto.role) member.role = dto.role;
     if (dto.permissions) {
-      if (dto.permissions.canEdit !== undefined) member.permissions.canEdit = dto.permissions.canEdit;
-      if (dto.permissions.canInvite !== undefined) member.permissions.canInvite = dto.permissions.canInvite;
-      if (dto.permissions.canSubmit !== undefined) member.permissions.canSubmit = dto.permissions.canSubmit;
+      if (dto.permissions.canEdit !== undefined)
+        member.permissions.canEdit = dto.permissions.canEdit;
+      if (dto.permissions.canInvite !== undefined)
+        member.permissions.canInvite = dto.permissions.canInvite;
+      if (dto.permissions.canSubmit !== undefined)
+        member.permissions.canSubmit = dto.permissions.canSubmit;
     }
 
     return build.save();
   }
 
-  async transferLeadership(uuid: string, currentLeadId: string, newLeadUuid: string): Promise<Build> {
+  async transferLeadership(
+    uuid: string,
+    currentLeadId: string,
+    newLeadUuid: string,
+  ): Promise<Build> {
     const build = await this.findByUuid(uuid);
     const currentLeadUser = await this.usersService.findByUuid(currentLeadId);
-    
+
     // Verify requester is LEAD
     const currentLeadMember = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === currentLeadUser!._id.toString()
+      (m) =>
+        (m.userId as Types.ObjectId).toString() ===
+        currentLeadUser!._id.toString(),
     );
 
     if (!currentLeadMember || currentLeadMember.role !== TeamMemberRole.LEAD) {
-      throw new ForbiddenException('Only the team lead can transfer leadership');
+      throw new ForbiddenException(
+        'Only the team lead can transfer leadership',
+      );
     }
 
     const newLeadMember = build.teamMembers.find((m) => m.uuid === newLeadUuid);
@@ -431,22 +501,30 @@ export class BuildsService {
     return slug;
   }
 
-  async validateUserPermission(build: Build, userId: string, permission: 'canEdit' | 'canInvite' | 'canSubmit'): Promise<void> {
+  async validateUserPermission(
+    build: Build,
+    userId: string,
+    permission: 'canEdit' | 'canInvite' | 'canSubmit',
+  ): Promise<void> {
     const user = await this.usersService.findByUuid(userId);
     if (!user) throw new ForbiddenException('User not found');
 
     const member = build.teamMembers.find(
-      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString()
+      (m) => (m.userId as Types.ObjectId).toString() === user._id.toString(),
     );
 
     if (!member || member.status !== TeamMemberStatus.ACCEPTED) {
-      throw new ForbiddenException('You are not an active member of this build team');
+      throw new ForbiddenException(
+        'You are not an active member of this build team',
+      );
     }
 
     if (member.role === TeamMemberRole.LEAD) return; // LEAD has all permissions
 
     if (!member.permissions[permission]) {
-      throw new ForbiddenException(`You do not have permission to ${permission.replace('can', '').toLowerCase()} this build`);
+      throw new ForbiddenException(
+        `You do not have permission to ${permission.replace('can', '').toLowerCase()} this build`,
+      );
     }
   }
 }

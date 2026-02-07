@@ -9,7 +9,7 @@ import {
   MaxLength,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BuildCategory } from '../enums/build-category.enum';
 import { SocialLinkDto } from './social-link.dto';
@@ -21,27 +21,33 @@ export class CreateBuildDto {
   @MaxLength(200)
   name: string;
 
-  @ApiProperty({ example: 'The best wallet for Stellar DeFi' })
+  @ApiProperty({ example: 'The best wallet for Stellar DeFi', required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(120)
-  tagline: string;
+  tagline?: string;
 
-  @ApiProperty({ enum: BuildCategory, example: BuildCategory.DEFI })
+  @ApiProperty({
+    enum: BuildCategory,
+    example: BuildCategory.DEFI,
+    required: false,
+  })
+  @Transform(({ value }) => value?.toUpperCase())
   @IsEnum(BuildCategory)
-  category: BuildCategory;
+  @IsOptional()
+  category?: BuildCategory;
 
-  @ApiProperty({ example: 'To revolutionize payments...' })
+  @ApiProperty({ example: 'To revolutionize payments...', required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(500)
-  vision: string;
+  vision?: string;
 
-  @ApiProperty({ example: '# Features\n\n...' })
+  @ApiProperty({ example: '# Features\n\n...', required: false })
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MaxLength(10000)
-  description: string;
+  description?: string;
 
   @ApiProperty({ example: 'https://example.com/logo.png', required: false })
   @IsUrl()
@@ -70,20 +76,23 @@ export class CreateBuildDto {
   @IsOptional()
   socialLinks?: SocialLinkDto[];
 
-  @ApiProperty({ example: 'A team of passionate developers...' })
+  @ApiProperty({
+    example: 'A team of passionate developers...',
+    required: false,
+  })
   @IsString()
-  @IsNotEmpty()
-  teamDescription: string;
+  @IsOptional()
+  teamDescription?: string;
 
-  @ApiProperty({ example: '@teamlead' })
+  @ApiProperty({ example: '@teamlead', required: false })
   @IsString()
-  @IsNotEmpty()
-  teamLeadTelegram: string;
+  @IsOptional()
+  teamLeadTelegram?: string;
 
-  @ApiProperty({ example: 'contact@example.com' })
+  @ApiProperty({ example: 'contact@example.com', required: false })
   @IsEmail()
-  @IsNotEmpty()
-  contactEmail: string;
+  @IsOptional()
+  contactEmail?: string;
 
   @ApiProperty({ example: ['https://twitter.com/team'], required: false })
   @IsArray()
