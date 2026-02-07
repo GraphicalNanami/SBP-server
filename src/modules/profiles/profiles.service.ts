@@ -173,8 +173,8 @@ export class ProfilesService {
     if (UuidUtil.validate(identifier)) {
       user = await this.usersService.findByUuid(identifier);
     } else {
-      // Search by username (email for now, until username field is added)
-      user = await this.usersService.findByEmail(identifier);
+      // Search by username (email prefix for now, until username field is added)
+      user = await this.usersService.findByEmailPrefix(identifier);
     }
 
     if (!user) {
@@ -194,13 +194,20 @@ export class ProfilesService {
       ? `${apiUrl}/${profile.profilePictureUrl}`
       : undefined;
 
+    // Build combined location from city and country
+    const location = [profile?.city, profile?.country]
+      .filter(Boolean)
+      .join(', ') || undefined;
+
     // Sanitize and build public profile response
     const publicProfile: PublicProfileDto = {
       uuid: user.uuid,
       username: user.email.split('@')[0], // Temporary username until username field exists
       name: user.name,
+      bio: profile?.bio,
       city: profile?.city,
       country: profile?.country,
+      location,
       website: profile?.website,
       profilePicture: profilePictureUrl,
       socialLinks: profile?.socialLinks ? {

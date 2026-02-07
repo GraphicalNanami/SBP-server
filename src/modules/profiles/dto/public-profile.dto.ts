@@ -53,6 +53,9 @@ export class PublicProfileDto {
   @ApiProperty({ description: 'Country', required: false })
   country?: string;
 
+  @ApiProperty({ description: 'Combined location (city, country)', required: false })
+  location?: string;
+
   @ApiProperty({ description: 'Website URL', required: false })
   website?: string;
 

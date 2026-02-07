@@ -16,6 +16,7 @@
 - `UsersService`: CRUD operations for user records
   - `create(email, password, name)` → User
   - `findByEmail(email)` → User | null
+  - `findByEmailPrefix(prefix)` → User | null (searches by email prefix/username)
   - `findById(id)` → User | null (Supports both ObjectId and UUID)
   - `findByUuid(uuid)` → User | null
   - `searchUsers(query, limit)` → User[] (searches by email or name with partial matching)

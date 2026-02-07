@@ -15,7 +15,7 @@
   - `findByUuid(uuid)` → Profile | null
   - `update(userId, data)` → Profile
   - `getCompleteProfile(userId)` → Aggregated User, Profile, Experience, and Wallets
-  - `findPublicProfileByIdentifier(identifier)` → PublicProfileDto | null (NEW: Public access by username or UUID)
+  - `findPublicProfileByIdentifier(identifier)` → PublicProfileDto | null (Public access by username/email-prefix or UUID)
 - `FileUploadService`: Image processing and storage
 - `ProfilesController`: Endpoints to retrieve and update profile data
   - `GET /profile/me` — Get current user's complete profile (requires JWT auth)

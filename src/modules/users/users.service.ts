@@ -21,6 +21,18 @@ export class UsersService {
     return this.userModel.findOne({ email }).exec();
   }
 
+  /**
+   * Find user by email prefix (username)
+   * Searches for a user whose email starts with the given prefix followed by '@'
+   * Used for public profile lookup by username
+   */
+  async findByEmailPrefix(prefix: string): Promise<User | null> {
+    const escapedPrefix = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return this.userModel
+      .findOne({ email: new RegExp(`^${escapedPrefix}@`, 'i') })
+      .exec();
+  }
+
   async findByEmailWithPassword(email: string): Promise<User | null> {
     return this.userModel.findOne({ email }).select('+password').exec();
   }
