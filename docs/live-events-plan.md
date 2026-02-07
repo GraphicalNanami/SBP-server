@@ -8,6 +8,7 @@ Enable the frontend "events section" to:
 - Display the user's registered events in their portfolio
 - Show the total number of users registered per event
 - Track event states (upcoming, ongoing, completed)
+- **Support hybrid event system: Auto-create events from frontend mock data on first registration**
 
 This module is separate from the existing events feature and is named **live-events** to avoid domain collisions.
 
@@ -138,15 +139,53 @@ This module is separate from the existing events feature and is named **live-eve
 ### 4) Register current user to an event
 - **Method/Path:** `POST /live-events/:eventUuid/register`
 - **Auth:** Required
+- **Payload (Optional):** Event data for auto-creation
+  - `eventData` (optional): Full event object - ONLY include when registering for a frontend mock event
+  - If the event doesn't exist in backend and `eventData` is provided, the event will be auto-created
+  - For existing backend events, send empty body `{}`
 - **Behavior:**
   1. Validate event UUID format.
-  2. Lookup event by UUID - if not found, return 404.
-  3. Resolve user UUID from token.
-  4. Check if registration already exists for `(eventUuid, userUuid)`.
+  2. Lookup event by UUID.
+  3. **If event not found AND `eventData` is provided:**
+     - Auto-create the event using provided data
+     - Use the eventUuid from URL as the UUID
+     - Set `createdByUserUuid` to the registering user
+     - Calculate status based on dates
+  4. **If event not found AND no `eventData`:**
+     - Return 404 error
+  5. Resolve user UUID from token.
+  6. Check if registration already exists for `(eventUuid, userUuid)`.
      - If exists, return 200 with `alreadyRegistered: true`.
      - If not, create a new registration with `registeredAt` timestamp.
-  5. Count total registrations for the event.
-  6. Return registration result.
+  7. Count total registrations for the event.
+  8. Return registration result.
+
+- **Request Body Examples:**
+
+**For mock event (auto-create):**
+```json
+{
+  "eventData": {
+    "title": "Stellar India Summit 2026",
+    "description": "Premier conference...",
+    "startDate": "2026-03-15T10:00:00Z",
+    "endDate": "2026-03-17T18:00:00Z",
+    "eventType": "CONFERENCE",
+    "country": "India",
+    "location": "Mumbai Convention Center",
+    "hosts": [
+      {"name": "Stellar Foundation", "role": "Organizer"}
+    ],
+    "bannerUrl": "https://...",
+    "tags": ["conference", "blockchain"]
+  }
+}
+```
+
+**For existing backend event:**
+```json
+{}
+```
 
 - **Response (200):**
   - `eventUuid`
@@ -157,8 +196,8 @@ This module is separate from the existing events feature and is named **live-eve
   - `registeredAt` (ISO timestamp)
 
 - **Error Responses:**
-  - 400: Invalid UUID format
-  - 404: Event not found
+  - 400: Invalid UUID format or validation errors in eventData
+  - 404: Event not found and no event data provided
   - 401: Unauthorized
 
 ### 5) Get current user's registered events

@@ -13,6 +13,7 @@ import { RedisModule } from '@/src/database/redis/redis.module';
 import { OrganizationsModule } from '@/src/modules/organizations/organizations.module';
 import { ExperienceModule } from '@/src/modules/experience/experience.module';
 import { WalletsModule } from '@/src/modules/wallets/wallets.module';
+import { LiveEventsModule } from './modules/live-events/live-events.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
 import { EventsIndexerModule } from './modules/events-indexer/events-indexer.module';
 
@@ -51,6 +52,7 @@ import { EventsIndexerModule } from './modules/events-indexer/events-indexer.mod
     EventsIndexerModule,
     ExperienceModule,
     WalletsModule,
+    LiveEventsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
