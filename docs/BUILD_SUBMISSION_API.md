@@ -70,7 +70,7 @@ This document provides the payload and response structures for the Builds and Su
   "category": "DEFI (optional)",
   "vision": "Long-term vision statement (optional)",
   "description": "Markdown description (optional)",
-  "logo": "URL or base64 data URI (optional)",
+  "logo": "URL or base64 data URI (optional, max 10MB for images)",
   "githubRepository": "URL (optional)",
   "website": "URL (optional)",
   "demoVideo": "URL (optional)",

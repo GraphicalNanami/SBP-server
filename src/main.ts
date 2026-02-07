@@ -13,7 +13,8 @@ async function bootstrap() {
     bodyParser: true,
   });
 
-  // Increase payload limits to 50MB
+  // Increase payload limits to 50MB (to support base64 images up to ~37MB)
+  app.use(require('express').json({ limit: '50mb' }));
   app.use(require('express').urlencoded({ limit: '50mb', extended: true }));
 
   app.useGlobalInterceptors(new LoggingInterceptor());

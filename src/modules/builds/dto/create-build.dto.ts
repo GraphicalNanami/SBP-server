@@ -13,7 +13,7 @@ import { Type, Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 import { BuildCategory } from '../enums/build-category.enum';
 import { SocialLinkDto } from './social-link.dto';
-import { IsUrlOrDataUri } from '@/src/common/validators/is-url-or-data-uri.validator';
+import { IsUrlOrDataUri, MaxImageSize } from '@/src/common/validators';
 
 export class CreateBuildDto {
   @ApiProperty({ example: 'Stellar DeFi Wallet' })
@@ -52,10 +52,11 @@ export class CreateBuildDto {
 
   @ApiProperty({
     example: 'https://example.com/logo.png',
-    description: 'Logo URL or base64 data URI (data:image/...;base64,...)',
+    description: 'Logo URL or base64 data URI (data:image/...;base64,...). Max size: 10MB',
     required: false,
   })
   @IsUrlOrDataUri()
+  @MaxImageSize(10)
   @IsOptional()
   logo?: string;
 
