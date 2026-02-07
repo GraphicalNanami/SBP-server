@@ -13,6 +13,8 @@ import { ExperienceService } from '@/src/modules/experience/experience.service';
 import { WalletsService } from '@/src/modules/wallets/wallets.service';
 import { LogInteraction } from '@/src/common/decorators/log-interaction.decorator';
 import { UuidUtil } from '@/src/common/utils/uuid.util';
+import { PublicProfileDto } from '@/src/modules/profiles/dto/public-profile.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class ProfilesService {
@@ -24,6 +26,7 @@ export class ProfilesService {
     private fileUploadService: FileUploadService,
     private experienceService: ExperienceService,
     private walletsService: WalletsService,
+    private configService: ConfigService,
   ) {}
 
   async findByUuid(uuid: string): Promise<Profile | null> {
@@ -153,5 +156,79 @@ export class ProfilesService {
       experience: experience || null,
       wallets: wallets || [],
     };
+  }
+
+  /**
+   * Find public profile by username or UUID
+   * Returns sanitized public data without sensitive information
+   * @param identifier - username or UUID
+   * @returns PublicProfileDto with sanitized data
+   */
+  async findPublicProfileByIdentifier(
+    identifier: string,
+  ): Promise<PublicProfileDto | null> {
+    let user;
+
+    // Detect if identifier is UUID or username
+    if (UuidUtil.validate(identifier)) {
+      user = await this.usersService.findByUuid(identifier);
+    } else {
+      // Search by username (email prefix for now, until username field is added)
+      user = await this.usersService.findByEmailPrefix(identifier);
+    }
+
+    if (!user) {
+      return null;
+    }
+
+    // Fetch profile and related data
+    const [profile, experience, wallets] = await Promise.all([
+      this.findByUserId(user._id),
+      this.experienceService.findByUserId(user.uuid).catch(() => []),
+      this.walletsService.findByUserId(user.uuid).catch(() => []),
+    ]);
+
+    // Build API URL for profile pictures
+    const apiUrl = this.configService.get<string>('API_URL') || 'http://localhost:3000';
+    const profilePictureUrl = profile?.profilePictureUrl
+      ? `${apiUrl}/${profile.profilePictureUrl}`
+      : undefined;
+
+    // Build combined location from city and country
+    const location = [profile?.city, profile?.country]
+      .filter(Boolean)
+      .join(', ') || undefined;
+
+    // Sanitize and build public profile response
+    const publicProfile: PublicProfileDto = {
+      uuid: user.uuid,
+      username: user.email.split('@')[0], // Temporary username until username field exists
+      name: user.name,
+      bio: profile?.bio,
+      city: profile?.city,
+      country: profile?.country,
+      location,
+      website: profile?.website,
+      profilePicture: profilePictureUrl,
+      socialLinks: profile?.socialLinks ? {
+        github: profile.socialLinks.github,
+        twitter: profile.socialLinks.twitter,
+        linkedin: profile.socialLinks.linkedin,
+      } : undefined,
+      stellarAddresses: profile?.stellarAddress ? [profile.stellarAddress] : [],
+      experience: Array.isArray(experience)
+        ? experience.map((exp: any) => ({
+            id: exp._id?.toString() || exp.id,
+            title: exp.title,
+            organization: exp.organization,
+            startDate: exp.startDate,
+            endDate: exp.endDate,
+            current: exp.current || false,
+          }))
+        : [],
+      joinedAt: user.createdAt?.toISOString() || new Date().toISOString(),
+    };
+
+    return publicProfile;
   }
 }
