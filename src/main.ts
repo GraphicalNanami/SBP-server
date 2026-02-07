@@ -10,7 +10,11 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['log', 'error', 'warn', 'debug', 'verbose'],
+    bodyParser: true,
   });
+
+  // Increase payload limits to 50MB
+  app.use(require('express').urlencoded({ limit: '50mb', extended: true }));
 
   app.useGlobalInterceptors(new LoggingInterceptor());
 

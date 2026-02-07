@@ -155,13 +155,11 @@ This document provides the payload and response structures for the Builds and Su
   - `teamDescription`
   - `teamLeadTelegram`
   - `contactEmail`
-  - `contractAddress` (from payload)
-  - `stellarAddress` (from payload)
 - **Payload**:
 ```json
 {
-  "contractAddress": "C... (56 chars, required)",
-  "stellarAddress": "G... (56 chars, required)",
+  "contractAddress": "C... (56 chars, optional)",
+  "stellarAddress": "G... (56 chars, optional)",
   "visibility": "PUBLIC | UNLISTED"
 }
 ```

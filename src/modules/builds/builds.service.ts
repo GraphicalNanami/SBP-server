@@ -117,8 +117,6 @@ export class BuildsService {
     if (!build.teamDescription) missingFields.push('teamDescription');
     if (!build.teamLeadTelegram) missingFields.push('teamLeadTelegram');
     if (!build.contactEmail) missingFields.push('contactEmail');
-    if (!publishDto.contractAddress) missingFields.push('contractAddress');
-    if (!publishDto.stellarAddress) missingFields.push('stellarAddress');
 
     if (missingFields.length > 0) {
       throw new BadRequestException(
@@ -126,8 +124,13 @@ export class BuildsService {
       );
     }
 
-    build.contractAddress = publishDto.contractAddress;
-    build.stellarAddress = publishDto.stellarAddress;
+    // Set addresses only if provided
+    if (publishDto.contractAddress) {
+      build.contractAddress = publishDto.contractAddress;
+    }
+    if (publishDto.stellarAddress) {
+      build.stellarAddress = publishDto.stellarAddress;
+    }
     build.visibility = publishDto.visibility || BuildVisibility.PUBLIC;
     build.status = BuildStatus.PUBLISHED;
     build.publishedAt = new Date();
