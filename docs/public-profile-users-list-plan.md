@@ -1,8 +1,43 @@
 # Public Profile & Users List API — Implementation Plan
 
 **Created**: February 7, 2026  
-**Status**: Planning  
+**Status**: ✅ **IMPLEMENTED** (Phase 1 & Phase 2 Complete)
 **Modules Affected**: Profiles, Users, Auth
+
+---
+
+## Implementation Status
+
+### ✅ Phase 1: Public Profile - COMPLETE
+- ✅ Created `PublicProfileDto` with comprehensive response structure
+- ✅ Implemented `ProfilesService.findPublicProfileByIdentifier()` method
+- ✅ Added `GET /profile/public/:identifier` endpoint in ProfilesController
+- ✅ Support for both UUID and username (email prefix) identifiers
+- ✅ Data sanitization to exclude sensitive information
+- ✅ Profile picture URL transformation to full URLs
+- ✅ Integration with Experience and Wallets modules
+- ✅ Updated context.md documentation
+
+### ✅ Phase 2: Users List - COMPLETE
+- ✅ Created `UsersListQueryDto` with validation
+- ✅ Created `UsersListResponseDto` and `UserListItemDto`
+- ✅ Implemented `UsersService.getUsersList()` method with aggregation
+- ✅ Added `GET /users/list` endpoint in UsersController
+- ✅ Pagination support (max 100 items per page)
+- ✅ Search functionality across username and name
+- ✅ Role filtering capability
+- ✅ Flexible sorting (by joinedAt, name, username)
+- ✅ Bio truncation to 150 characters
+- ✅ Profile picture URL transformation
+- ✅ Verified badge based on Stellar address
+- ✅ Updated context.md documentation
+
+### 🔄 Phase 3: Optimization & Polish - PENDING
+- ⏳ Add rate limiting middleware
+- ⏳ Add caching headers
+- ⏳ Optimize database queries with indexes
+- ⏳ Add E2E tests
+- ⏳ Update API documentation
 
 ---
 
@@ -437,3 +472,142 @@ GET /users/list?page=3&limit=50
 - Consider GraphQL for flexible field selection (future)
 - Ensure GDPR compliance for user data
 - Add monitoring/analytics for API usage patterns
+
+---
+
+## Implementation Notes (February 7, 2026)
+
+### Code Changes Made
+
+#### 1. Created DTOs
+- **d:\Event tracker\SBP-Server\src\modules\profiles\dto\public-profile.dto.ts**
+  - `PublicProfileDto` - Complete public profile response structure
+  - `PublicSocialLinksDto` - Social links structure
+  - `PublicExperienceDto` - Experience item structure
+  
+- **d:\Event tracker\SBP-Server\src\modules\users\dto\users-list-query.dto.ts**
+  - `UsersListQueryDto` - Query parameters with validation (page, limit, search, role, sortBy, sortOrder)
+  
+- **d:\Event tracker\SBP-Server\src\modules\users\dto\users-list-response.dto.ts**
+  - `UsersListResponseDto` - Paginated response wrapper
+  - `UserListItemDto` - Individual user item in list
+  - `PaginationDto` - Pagination metadata
+
+#### 2. ProfilesService Updates
+- Added `findPublicProfileByIdentifier(identifier: string)` method
+  - Auto-detects UUID vs username (email prefix)
+  - Aggregates data from User, Profile, Experience, and Wallets
+  - Sanitizes data by excluding sensitive fields
+  - Transforms profile picture paths to full URLs
+  - Returns null if user not found
+- Injected `ConfigService` for API URL configuration
+
+#### 3. ProfilesController Updates
+- Added `GET /profile/public/:identifier` endpoint
+  - No authentication required
+  - Returns PublicProfileDto
+  - Throws 404 if user not found
+  - Comprehensive Swagger documentation
+
+#### 4. UsersService Updates
+- Added `getUsersList(query: UsersListQueryDto)` method
+  - Uses MongoDB aggregation pipeline to join profile data
+  - Supports pagination with configurable page size (max 100)
+  - Implements case-insensitive search across username and name
+  - Filters by role if specified
+  - Flexible sorting (joinedAt, name, username in asc/desc order)
+  - Truncates bio to 150 characters
+  - Transforms profile picture URLs
+  - Calculates verified status based on Stellar address
+  - Returns UsersListResponseDto with pagination metadata
+- Injected `ConfigService` for API URL configuration
+
+#### 5. UsersController Updates
+- Added `GET /users/list` endpoint
+  - No authentication required
+  - Accepts UsersListQueryDto query parameters
+  - Returns UsersListResponseDto
+  - Comprehensive Swagger documentation with all query parameters
+
+#### 6. Documentation Updates
+- Updated `d:\Event tracker\SBP-Server\src\modules\profiles\context.md`
+  - Added public profile features section
+  - Updated public interfaces list
+  - Added ConfigService dependency
+  - Documented data sanitization rules
+  
+- Updated `d:\Event tracker\SBP-Server\src\modules\users\context.md`
+  - Added public user directory features section
+  - Updated public interfaces list
+  - Added ConfigService dependency
+  - Documented security considerations for public endpoints
+
+### Technical Decisions
+
+1. **Username Handling**: Since the User schema doesn't have a dedicated `username` field yet, we're using the email prefix (part before @) as a temporary username. This will need to be updated when a username field is added.
+
+2. **Profile Picture URLs**: Profile picture paths stored in the database are relative (e.g., `uploads/profile-pictures/...`). The service transforms these to full URLs using the API_URL from ConfigService.
+
+3. **Stellar Address**: Currently supporting single stellar address from profile. The response is structured as an array to support multiple addresses in the future.
+
+4. **Verification Badge**: Users are marked as "verified" if they have a Stellar address in their profile. This is a simple implementation that can be enhanced later.
+
+5. **Bio Truncation**: Users list truncates bio to 150 characters to keep response sizes manageable and improve performance.
+
+6. **Location Format**: Location is constructed by combining city and country with ", " separator.
+
+7. **Error Handling**: Services use aggregation with `catch()` to handle missing modules gracefully (Experience and Wallets), returning empty arrays if they fail.
+
+### Known Limitations
+
+1. **No Username Field**: Using email prefix as username temporarily
+2. **No Rate Limiting**: Public endpoints don't have rate limiting yet (Phase 3)
+3. **No Caching**: No HTTP caching headers or Redis caching yet (Phase 3)
+4. **No Indexes**: Database indexes not created yet (Phase 3)
+5. **No Privacy Settings**: Users can't hide their profiles or specific fields yet
+6. **No Tests**: Unit, integration, and E2E tests not written yet (Phase 3)
+7. **Single Stellar Address**: Only supporting one address per profile currently
+
+### Next Steps (Phase 3)
+
+1. Add database indexes for performance:
+   ```javascript
+   db.users.createIndex({ username: 1 });
+   db.users.createIndex({ createdAt: -1 });
+   db.profiles.createIndex({ userId: 1 });
+   db.profiles.createIndex({ bio: "text", name: "text" });
+   ```
+
+2. Implement rate limiting middleware (e.g., using @nestjs/throttler)
+
+3. Add caching:
+   - HTTP cache headers (Cache-Control, ETag)
+   - Redis caching for popular queries
+
+4. Write comprehensive tests:
+   - Unit tests for service methods
+   - Integration tests for endpoints
+   - E2E tests for user flows
+
+5. Add username field to User schema
+
+6. Implement profile privacy settings
+
+7. Add monitoring and analytics
+
+### Testing Recommendations
+
+To test the new endpoints:
+
+```bash
+# Test public profile endpoint
+curl http://localhost:3000/profile/public/<uuid>
+curl http://localhost:3000/profile/public/<username>
+
+# Test users list endpoint
+curl http://localhost:3000/users/list
+curl http://localhost:3000/users/list?page=1&limit=20
+curl http://localhost:3000/users/list?search=john
+curl http://localhost:3000/users/list?role=organizer
+curl http://localhost:3000/users/list?sortBy=name&sortOrder=asc
+```
