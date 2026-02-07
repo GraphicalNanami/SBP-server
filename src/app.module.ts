@@ -16,6 +16,8 @@ import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 import { LiveEventsModule } from './modules/live-events/live-events.module';
 import { HackathonsModule } from './modules/hackathons/hackathons.module';
 import { EventsIndexerModule } from './modules/events-indexer/events-indexer.module';
+import { BuildsModule } from './modules/builds/builds.module';
+import { SubmissionsModule } from './modules/submissions/submissions.module';
 
 @Module({
   imports: [
@@ -53,6 +55,8 @@ import { EventsIndexerModule } from './modules/events-indexer/events-indexer.mod
     ExperienceModule,
     WalletsModule,
     LiveEventsModule,
+    BuildsModule,
+    SubmissionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

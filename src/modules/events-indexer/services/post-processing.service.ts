@@ -385,12 +385,17 @@ export class PostProcessingService {
   }
 
   async getRecentPosts(
-    hours: number = 24,
+    hours?: number, // Optional now - undefined means all posts
     platform?: 'twitter' | 'reddit' | 'discord',
   ): Promise<PostDocument[]> {
-    const cutoffDate = new Date(Date.now() - hours * 60 * 60 * 1000);
-
-    const query: any = { created_at: { $gte: cutoffDate } };
+    const query: any = {};
+    
+    // Only apply time filter if hours is specified
+    if (hours !== undefined) {
+      const cutoffDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+      query.created_at = { $gte: cutoffDate };
+    }
+    
     if (platform) {
       query.platform = platform;
     }
