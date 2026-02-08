@@ -145,7 +145,7 @@ export class CreateHackathonDto {
   })
   @IsString()
   @IsNotEmpty()
-  @Optional()
+  @IsOptional()
   description?: string;
 
   @ApiProperty({
