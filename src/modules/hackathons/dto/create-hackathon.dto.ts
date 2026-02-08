@@ -12,6 +12,7 @@ import { HackathonCategory } from '../enums/hackathon-category.enum';
 import { HackathonVisibility } from '../enums/hackathon-visibility.enum';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsUrlOrDataUri, MaxImageSize } from '@/src/common/validators';
+import { Optional } from '@nestjs/common';
 
 export class CreateHackathonDto {
   @ApiProperty({
@@ -144,7 +145,8 @@ export class CreateHackathonDto {
   })
   @IsString()
   @IsNotEmpty()
-  description: string;
+  @Optional()
+  description?: string;
 
   @ApiProperty({
     example: '# Overview\n\nThis hackathon is about...',
