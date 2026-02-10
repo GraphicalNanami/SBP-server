@@ -29,10 +29,10 @@ export class User extends Document {
   })
   uuid: string;
 
-  @Prop({ required: true, unique: true, index: true })
+  @Prop({ required: false, index: false }) // Index created manually with partialFilterExpression
   email: string;
 
-  @Prop({ required: true, select: false }) // Never include password in queries by default
+  @Prop({ required: false, select: false }) // Never include password in queries by default
   password: string;
 
   @Prop({ required: true })

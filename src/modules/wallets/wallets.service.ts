@@ -53,6 +53,30 @@ export class WalletsService {
     return this.walletModel.findOne({ uuid }).exec();
   }
 
+  async findByAddress(address: string): Promise<Wallet | null> {
+    return this.walletModel.findOne({ address }).exec();
+  }
+
+  async createVerifiedWallet(
+    userId: Types.ObjectId,
+    address: string,
+  ): Promise<Wallet> {
+    const existingWallet = await this.walletModel.findOne({ address });
+    if (existingWallet) {
+      throw new ConflictException('Wallet address already registered');
+    }
+
+    const wallet = new this.walletModel({
+      userId,
+      address,
+      isPrimary: true,
+      isVerified: true,
+      lastUsedAt: new Date(),
+    });
+
+    return wallet.save();
+  }
+
   async addWallet(
     userId: string,
     data: AddWalletDto,

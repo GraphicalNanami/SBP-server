@@ -2,34 +2,39 @@
 
 ## Responsibilities
 - Core user entity management
-- User creation (called by AuthModule during registration)
+- User creation for email/password authentication (called by AuthModule)
+- User creation for wallet-only authentication (called by AuthModule)
 - User lookup by email or ID
 - User search by email or name (for invitations and user discovery)
 - Public user directory with pagination and filtering (no auth required)
 - Role management (USER, ORGANIZER, ADMIN)
-- Password storage (bcrypt hashed)
+- Password storage (bcrypt hashed) for email/password users
 
 ## Public Interfaces
 - `UsersController`: HTTP endpoints for user operations
   - `GET /users/search?query=<term>&limit=<number>`: Search users by email or name (requires authentication)
-  - `GET /users/list`: Get paginated list of users with public information (NEW: No auth required)
+  - `GET /users/list`: Get paginated list of users with public information (No auth required)
 - `UsersService`: CRUD operations for user records
-  - `create(email, password, name)` → User
+  - `create(email, password, name)` → User (for email/password auth)
+  - `createWalletUser(name)` → User (for wallet-only auth)
   - `findByEmail(email)` → User | null
   - `findByEmailPrefix(prefix)` → User | null (searches by email prefix/username)
   - `findById(id)` → User | null (Supports both ObjectId and UUID)
   - `findByUuid(uuid)` → User | null
   - `searchUsers(query, limit)` → User[] (searches by email or name with partial matching)
-  - `getUsersList(query)` → UsersListResponseDto (NEW: Paginated public user directory)
-- `User` Schema: User model with email, password, name, avatar, role, uuid
+  - `getUsersList(query)` → UsersListResponseDto (Paginated public user directory)
+- `User` Schema: User model with email (optional), password (optional), name, avatar, role, uuid
 - `UserMinimalDto`: Minimal user information response (uuid, email, name, avatar, role)
 - `SearchUsersDto`: Search query parameters (query, limit)
-- `UsersListQueryDto`: Query parameters for public user list (page, limit, search, role, sortBy, sortOrder) (NEW)
-- `UsersListResponseDto`: Paginated response with users array and pagination metadata (NEW)
-- `UserListItemDto`: Public user information for directory listings (NEW)
+- `UsersListQueryDto`: Query parameters for public user list (page, limit, search, role, sortBy, sortOrder)
+- `UsersListResponseDto`: Paginated response with users array and pagination metadata
+- `UserListItemDto`: Public user information for directory listings
 
 ## Invariants
-- `email` must be unique
+- `email` must be unique when present (sparse index allows multiple null values)
+- `email` is optional to support wallet-only users
+- `password` is optional to support wallet-only users
+- At least one authentication method must exist (email+password OR wallet)
 - `uuid` is generated automatically (UUID v4) and must be unique
 - `password` field is ALWAYS excluded from query results (`.select('-password')`)
 - Every user is assigned the `USER` role by default
@@ -38,8 +43,9 @@
 - Search results are limited to 50 users maximum
 - Search endpoint requires authentication (JWT)
 - Public user list endpoint does NOT require authentication
-- Public user list excludes sensitive data (email, password, etc.)
+- Public user list excludes sensitive data (password, etc.)
 - Public user list respects pagination limits (max 100 per page)
+- Wallet-only users have `email: null` and `password: null`
 
 ## Dependencies
 - `MongooseModule`: For MongoDB interaction
@@ -48,6 +54,7 @@
 
 ## Security
 - This module does NOT handle password hashing (AuthModule's responsibility)
+- This module does NOT validate wallet ownership (WalletsModule's responsibility)
 - This module MUST exclude `password` from all responses
 - Email validation is enforced at DTO layer (AuthModule)
 - Public endpoints sanitize data to prevent sensitive information leakage
