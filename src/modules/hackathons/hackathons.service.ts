@@ -268,8 +268,11 @@ export class HackathonsService {
     }
 
     // Update the hackathon using set to handle nested objects properly
+    // Skip undefined values to avoid overwriting existing fields with undefined
     Object.keys(updateDto).forEach((key) => {
-      hackathon.set(key, updateDto[key]);
+      if (updateDto[key] !== undefined) {
+        hackathon.set(key, updateDto[key]);
+      }
     });
 
     return hackathon.save();

@@ -4,7 +4,6 @@ import {
   IsArray,
   IsOptional,
   IsDateString,
-  IsUrl,
   IsEmail,
   ValidateNested,
   IsBoolean,
@@ -17,6 +16,7 @@ import { HackathonCategory } from '../enums/hackathon-category.enum';
 import { HackathonVisibility } from '../enums/hackathon-visibility.enum';
 import { QuestionType } from '../enums/question-type.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsUrlOrDataUri, MaxImageSize } from '@/src/common/validators';
 
 export class UpdateTrackDto {
   @ApiProperty({
@@ -262,10 +262,11 @@ export class UpdateHackathonDto {
 
   @ApiProperty({
     example: 'https://example.com/poster.png',
-    description: 'URL of the hackathon poster',
+    description: 'URL of the hackathon poster or base64 data URI (data:image/...;base64,...). Max size: 10MB',
     required: false,
   })
-  @IsUrl()
+  @IsUrlOrDataUri()
+  @MaxImageSize(10)
   @IsOptional()
   posterUrl?: string;
 

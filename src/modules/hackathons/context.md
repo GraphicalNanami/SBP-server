@@ -33,7 +33,7 @@
 - `HackathonRoleGuard`: Permission enforcement based on organization roles and creator status
 - `ListPublicHackathonsDto`: Query parameters for public listing (filter, limit, offset)
 - `HackathonSummaryDto`: Minimal hackathon summary for list responses
-- `UpdateHackathonDto`: Comprehensive DTO supporting partial updates of all hackathon fields including nested documents
+- `UpdateHackathonDto`: Comprehensive DTO supporting partial updates of all hackathon fields including nested documents. `posterUrl` accepts both HTTP/HTTPS URLs and base64 data URIs (max 10MB)
 
 ## Invariants
 - Hackathons are created in `DRAFT` status

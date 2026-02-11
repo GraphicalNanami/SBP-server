@@ -12,7 +12,7 @@
     - `findBySlug(slug)`: Find an organization by its slug.
     - `findById(id)`: Find an organization by its ID (Supports UUID or ObjectId).
     - `findUserOrganizations(userId)`: Get all organizations where the user is an active member. (Accepts UUID userId)
-    - `updateProfile(orgId, dto)`: Update basic organization profile info. (Accepts UUID orgId)
+    - `updateProfile(orgId, dto)`: Update basic organization profile info. `logo` accepts both HTTP/HTTPS URLs and base64 data URIs (max 10MB). (Accepts UUID orgId)
     - `updateSocialLinks(orgId, dto)`: Update organization social media links. (Accepts UUID orgId)
 - `MembersService`:
     - `findByOrganizationId(orgId, filters)`: List all members of an organization. (Accepts UUID orgId)

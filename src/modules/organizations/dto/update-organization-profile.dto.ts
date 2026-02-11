@@ -1,14 +1,16 @@
-import { IsString, IsOptional, IsUrl, MaxLength } from 'class-validator';
+import { IsString, IsOptional, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsUrlOrDataUri, MaxImageSize } from '@/src/common/validators';
 
 export class UpdateOrganizationProfileDto {
   @ApiProperty({
     example: 'https://example.com/logo.png',
-    description: 'The URL of the organization logo',
+    description: 'URL of the organization logo or base64 data URI (data:image/...;base64,...). Max size: 10MB',
     required: false,
   })
   @IsOptional()
-  @IsUrl({}, { message: 'Please provide a valid logo URL' })
+  @IsUrlOrDataUri()
+  @MaxImageSize(10)
   logo?: string;
 
   @ApiProperty({
