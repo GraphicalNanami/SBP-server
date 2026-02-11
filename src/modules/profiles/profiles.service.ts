@@ -199,10 +199,22 @@ export class ProfilesService {
       .filter(Boolean)
       .join(', ') || undefined;
 
+    // Generate username: use email prefix or wallet address prefix for wallet-only users
+    let username: string;
+    if (user.email) {
+      username = user.email.split('@')[0];
+    } else {
+      // Wallet-only user: use first 8 chars of primary wallet address or uuid
+      const primaryWallet = wallets?.find((w: any) => w.isPrimary);
+      username = primaryWallet 
+        ? `stellar_${primaryWallet.address.substring(0, 8)}`
+        : `user_${user.uuid.substring(0, 8)}`;
+    }
+
     // Sanitize and build public profile response
     const publicProfile: PublicProfileDto = {
       uuid: user.uuid,
-      username: user.email.split('@')[0], // Temporary username until username field exists
+      username,
       name: user.name,
       bio: profile?.bio,
       city: profile?.city,

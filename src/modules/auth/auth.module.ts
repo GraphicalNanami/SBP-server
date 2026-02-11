@@ -6,6 +6,7 @@ import { AuthService } from '@/src/modules/auth/auth.service';
 import { AuthController } from '@/src/modules/auth/auth.controller';
 import { UsersModule } from '@/src/modules/users/users.module';
 import { ProfilesModule } from '@/src/modules/profiles/profiles.module';
+import { WalletsModule } from '@/src/modules/wallets/wallets.module';
 // import { GithubStrategy } from '@/src/modules/auth/strategies/github.strategy';
 // import { GoogleStrategy } from '@/src/modules/auth/strategies/google.strategy';
 import { JwtStrategy } from '@/src/modules/auth/strategies/jwt.strategy';
@@ -14,6 +15,7 @@ import { JwtStrategy } from '@/src/modules/auth/strategies/jwt.strategy';
   imports: [
     UsersModule,
     ProfilesModule,
+    WalletsModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

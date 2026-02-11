@@ -80,8 +80,7 @@ export class Placement {
 export class Prize {
   @Prop({
     required: true,
-    unique: true,
-    index: true,
+    index: false, // Index created manually with partialFilterExpression
     default: () => uuidv4(),
   })
   uuid: string;

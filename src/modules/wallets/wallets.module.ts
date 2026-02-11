@@ -18,6 +18,6 @@ import { UsersModule } from '@/src/modules/users/users.module';
   ],
   controllers: [WalletsController],
   providers: [WalletsService, StellarVerificationService],
-  exports: [WalletsService],
+  exports: [WalletsService, StellarVerificationService],
 })
 export class WalletsModule {}

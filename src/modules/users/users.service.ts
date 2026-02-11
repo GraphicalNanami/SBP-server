@@ -72,6 +72,17 @@ export class UsersService {
   }
 
   @LogInteraction()
+  async createWalletUser(name: string): Promise<User> {
+    const newUser = new this.userModel({
+      email: null,
+      password: null,
+      name,
+    });
+
+    return newUser.save();
+  }
+
+  @LogInteraction()
   async update(id: string, updateData: Partial<User>): Promise<User | null> {
     return this.userModel
       .findByIdAndUpdate(id, updateData, { new: true })
